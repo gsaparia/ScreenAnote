@@ -1,0 +1,1827 @@
+[
+  {
+    "key": "smile",
+    "name": "Smile",
+    "category": "Smileys"
+  },
+  {
+    "key": "grin",
+    "name": "Grin",
+    "category": "Smileys"
+  },
+  {
+    "key": "wink",
+    "name": "Wink",
+    "category": "Smileys"
+  },
+  {
+    "key": "heart-eyes",
+    "name": "Heart eyes",
+    "category": "Smileys"
+  },
+  {
+    "key": "cool-sunglasses",
+    "name": "Cool sunglasses",
+    "category": "Smileys"
+  },
+  {
+    "key": "sad",
+    "name": "Sad",
+    "category": "Smileys"
+  },
+  {
+    "key": "surprised",
+    "name": "Surprised",
+    "category": "Smileys"
+  },
+  {
+    "key": "tongue-out",
+    "name": "Tongue out",
+    "category": "Smileys"
+  },
+  {
+    "key": "happy",
+    "name": "Happy",
+    "category": "Smileys"
+  },
+  {
+    "key": "laugh-tears",
+    "name": "Laugh tears",
+    "category": "Smileys"
+  },
+  {
+    "key": "heart",
+    "name": "Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "gold-star",
+    "name": "Gold star",
+    "category": "Icons"
+  },
+  {
+    "key": "check",
+    "name": "Check",
+    "category": "Icons"
+  },
+  {
+    "key": "cross",
+    "name": "Cross",
+    "category": "Icons"
+  },
+  {
+    "key": "thumb-up",
+    "name": "Thumb up",
+    "category": "Icons"
+  },
+  {
+    "key": "arrow-right",
+    "name": "Arrow right",
+    "category": "Icons"
+  },
+  {
+    "key": "information",
+    "name": "Information",
+    "category": "Icons"
+  },
+  {
+    "key": "question",
+    "name": "Question",
+    "category": "Icons"
+  },
+  {
+    "key": "speech-bubble",
+    "name": "Speech bubble",
+    "category": "Icons"
+  },
+  {
+    "key": "warning",
+    "name": "Warning",
+    "category": "Icons"
+  },
+  {
+    "key": "flag",
+    "name": "Flag",
+    "category": "Icons"
+  },
+  {
+    "key": "fire",
+    "name": "Fire",
+    "category": "Objects"
+  },
+  {
+    "key": "light-bulb",
+    "name": "Light bulb",
+    "category": "Objects"
+  },
+  {
+    "key": "push-pin",
+    "name": "Push pin",
+    "category": "Objects"
+  },
+  {
+    "key": "target",
+    "name": "Target",
+    "category": "Objects"
+  },
+  {
+    "key": "laptop",
+    "name": "Laptop",
+    "category": "Objects"
+  },
+  {
+    "key": "confetti",
+    "name": "Confetti",
+    "category": "Objects"
+  },
+  {
+    "key": "gift",
+    "name": "Gift",
+    "category": "Objects"
+  },
+  {
+    "key": "blue-heart",
+    "name": "Blue heart",
+    "category": "Icons"
+  },
+  {
+    "key": "green-heart",
+    "name": "Green heart",
+    "category": "Icons"
+  },
+  {
+    "key": "purple-heart",
+    "name": "Purple heart",
+    "category": "Icons"
+  },
+  {
+    "key": "pink-heart",
+    "name": "Pink heart",
+    "category": "Icons"
+  },
+  {
+    "key": "coral-heart",
+    "name": "Coral Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "mint-heart",
+    "name": "Mint Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "orange-heart",
+    "name": "Orange Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "teal-heart",
+    "name": "Teal Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "lime-heart",
+    "name": "Lime Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "gold-heart",
+    "name": "Gold Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "navy-heart",
+    "name": "Navy Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "rose-heart",
+    "name": "Rose Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "violet-heart",
+    "name": "Violet Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "emerald-heart",
+    "name": "Emerald Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "sky-heart",
+    "name": "Sky Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "peach-heart",
+    "name": "Peach Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "ruby-heart",
+    "name": "Ruby Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "aqua-heart",
+    "name": "Aqua Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "lavender-heart",
+    "name": "Lavender Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "amber-heart",
+    "name": "Amber Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "ocean-heart",
+    "name": "Ocean Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "cherry-heart",
+    "name": "Cherry Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "forest-heart",
+    "name": "Forest Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "cobalt-heart",
+    "name": "Cobalt Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "sunset-heart",
+    "name": "Sunset Heart",
+    "category": "Icons"
+  },
+  {
+    "key": "coral-star",
+    "name": "Coral Star",
+    "category": "Icons"
+  },
+  {
+    "key": "mint-star",
+    "name": "Mint Star",
+    "category": "Icons"
+  },
+  {
+    "key": "blue-star",
+    "name": "Blue Star",
+    "category": "Icons"
+  },
+  {
+    "key": "purple-star",
+    "name": "Purple Star",
+    "category": "Icons"
+  },
+  {
+    "key": "pink-star",
+    "name": "Pink Star",
+    "category": "Icons"
+  },
+  {
+    "key": "orange-star",
+    "name": "Orange Star",
+    "category": "Icons"
+  },
+  {
+    "key": "teal-star",
+    "name": "Teal Star",
+    "category": "Icons"
+  },
+  {
+    "key": "lime-star",
+    "name": "Lime Star",
+    "category": "Icons"
+  },
+  {
+    "key": "navy-star",
+    "name": "Navy Star",
+    "category": "Icons"
+  },
+  {
+    "key": "rose-star",
+    "name": "Rose Star",
+    "category": "Icons"
+  },
+  {
+    "key": "violet-star",
+    "name": "Violet Star",
+    "category": "Icons"
+  },
+  {
+    "key": "emerald-star",
+    "name": "Emerald Star",
+    "category": "Icons"
+  },
+  {
+    "key": "sky-star",
+    "name": "Sky Star",
+    "category": "Icons"
+  },
+  {
+    "key": "peach-star",
+    "name": "Peach Star",
+    "category": "Icons"
+  },
+  {
+    "key": "ruby-star",
+    "name": "Ruby Star",
+    "category": "Icons"
+  },
+  {
+    "key": "aqua-star",
+    "name": "Aqua Star",
+    "category": "Icons"
+  },
+  {
+    "key": "lavender-star",
+    "name": "Lavender Star",
+    "category": "Icons"
+  },
+  {
+    "key": "amber-star",
+    "name": "Amber Star",
+    "category": "Icons"
+  },
+  {
+    "key": "ocean-star",
+    "name": "Ocean Star",
+    "category": "Icons"
+  },
+  {
+    "key": "cherry-star",
+    "name": "Cherry Star",
+    "category": "Icons"
+  },
+  {
+    "key": "forest-star",
+    "name": "Forest Star",
+    "category": "Icons"
+  },
+  {
+    "key": "cobalt-star",
+    "name": "Cobalt Star",
+    "category": "Icons"
+  },
+  {
+    "key": "sunset-star",
+    "name": "Sunset Star",
+    "category": "Icons"
+  },
+  {
+    "key": "coral-arrow",
+    "name": "Coral Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "mint-arrow",
+    "name": "Mint Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "blue-arrow",
+    "name": "Blue Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "purple-arrow",
+    "name": "Purple Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "pink-arrow",
+    "name": "Pink Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "orange-arrow",
+    "name": "Orange Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "teal-arrow",
+    "name": "Teal Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "lime-arrow",
+    "name": "Lime Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "gold-arrow",
+    "name": "Gold Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "navy-arrow",
+    "name": "Navy Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "rose-arrow",
+    "name": "Rose Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "violet-arrow",
+    "name": "Violet Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "emerald-arrow",
+    "name": "Emerald Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "sky-arrow",
+    "name": "Sky Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "peach-arrow",
+    "name": "Peach Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "ruby-arrow",
+    "name": "Ruby Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "aqua-arrow",
+    "name": "Aqua Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "lavender-arrow",
+    "name": "Lavender Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "amber-arrow",
+    "name": "Amber Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "ocean-arrow",
+    "name": "Ocean Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "cherry-arrow",
+    "name": "Cherry Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "forest-arrow",
+    "name": "Forest Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "cobalt-arrow",
+    "name": "Cobalt Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "sunset-arrow",
+    "name": "Sunset Arrow",
+    "category": "Icons"
+  },
+  {
+    "key": "coral-badge",
+    "name": "Coral Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "mint-badge",
+    "name": "Mint Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "blue-badge",
+    "name": "Blue Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "purple-badge",
+    "name": "Purple Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "pink-badge",
+    "name": "Pink Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "orange-badge",
+    "name": "Orange Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "teal-badge",
+    "name": "Teal Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "lime-badge",
+    "name": "Lime Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "gold-badge",
+    "name": "Gold Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "navy-badge",
+    "name": "Navy Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "rose-badge",
+    "name": "Rose Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "violet-badge",
+    "name": "Violet Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "emerald-badge",
+    "name": "Emerald Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "sky-badge",
+    "name": "Sky Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "peach-badge",
+    "name": "Peach Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "ruby-badge",
+    "name": "Ruby Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "aqua-badge",
+    "name": "Aqua Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "lavender-badge",
+    "name": "Lavender Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "amber-badge",
+    "name": "Amber Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "ocean-badge",
+    "name": "Ocean Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "cherry-badge",
+    "name": "Cherry Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "forest-badge",
+    "name": "Forest Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "cobalt-badge",
+    "name": "Cobalt Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "sunset-badge",
+    "name": "Sunset Badge",
+    "category": "Icons"
+  },
+  {
+    "key": "cat",
+    "name": "Cat",
+    "category": "Animals"
+  },
+  {
+    "key": "black-cat",
+    "name": "Black cat",
+    "category": "Animals"
+  },
+  {
+    "key": "dog",
+    "name": "Dog",
+    "category": "Animals"
+  },
+  {
+    "key": "puppy",
+    "name": "Puppy",
+    "category": "Animals"
+  },
+  {
+    "key": "fox",
+    "name": "Fox",
+    "category": "Animals"
+  },
+  {
+    "key": "wolf",
+    "name": "Wolf",
+    "category": "Animals"
+  },
+  {
+    "key": "bear",
+    "name": "Bear",
+    "category": "Animals"
+  },
+  {
+    "key": "polar-bear",
+    "name": "Polar bear",
+    "category": "Animals"
+  },
+  {
+    "key": "panda",
+    "name": "Panda",
+    "category": "Animals"
+  },
+  {
+    "key": "koala",
+    "name": "Koala",
+    "category": "Animals"
+  },
+  {
+    "key": "monkey",
+    "name": "Monkey",
+    "category": "Animals"
+  },
+  {
+    "key": "rabbit",
+    "name": "Rabbit",
+    "category": "Animals"
+  },
+  {
+    "key": "mouse",
+    "name": "Mouse",
+    "category": "Animals"
+  },
+  {
+    "key": "hamster",
+    "name": "Hamster",
+    "category": "Animals"
+  },
+  {
+    "key": "pig",
+    "name": "Pig",
+    "category": "Animals"
+  },
+  {
+    "key": "cow",
+    "name": "Cow",
+    "category": "Animals"
+  },
+  {
+    "key": "lion",
+    "name": "Lion",
+    "category": "Animals"
+  },
+  {
+    "key": "tiger",
+    "name": "Tiger",
+    "category": "Animals"
+  },
+  {
+    "key": "unicorn",
+    "name": "Unicorn",
+    "category": "Animals"
+  },
+  {
+    "key": "owl",
+    "name": "Owl",
+    "category": "Animals"
+  },
+  {
+    "key": "penguin",
+    "name": "Penguin",
+    "category": "Animals"
+  },
+  {
+    "key": "duck",
+    "name": "Duck",
+    "category": "Animals"
+  },
+  {
+    "key": "chick",
+    "name": "Chick",
+    "category": "Animals"
+  },
+  {
+    "key": "parrot",
+    "name": "Parrot",
+    "category": "Animals"
+  },
+  {
+    "key": "bluebird",
+    "name": "Bluebird",
+    "category": "Animals"
+  },
+  {
+    "key": "red-fish",
+    "name": "Red fish",
+    "category": "Animals"
+  },
+  {
+    "key": "blue-fish",
+    "name": "Blue fish",
+    "category": "Animals"
+  },
+  {
+    "key": "tropical-fish",
+    "name": "Tropical fish",
+    "category": "Animals"
+  },
+  {
+    "key": "whale",
+    "name": "Whale",
+    "category": "Animals"
+  },
+  {
+    "key": "octopus",
+    "name": "Octopus",
+    "category": "Animals"
+  },
+  {
+    "key": "turtle",
+    "name": "Turtle",
+    "category": "Animals"
+  },
+  {
+    "key": "frog",
+    "name": "Frog",
+    "category": "Animals"
+  },
+  {
+    "key": "bee",
+    "name": "Bee",
+    "category": "Animals"
+  },
+  {
+    "key": "butterfly",
+    "name": "Butterfly",
+    "category": "Animals"
+  },
+  {
+    "key": "ladybug",
+    "name": "Ladybug",
+    "category": "Animals"
+  },
+  {
+    "key": "snail",
+    "name": "Snail",
+    "category": "Animals"
+  },
+  {
+    "key": "apple",
+    "name": "Apple",
+    "category": "Food"
+  },
+  {
+    "key": "green-apple",
+    "name": "Green apple",
+    "category": "Food"
+  },
+  {
+    "key": "orange",
+    "name": "Orange",
+    "category": "Food"
+  },
+  {
+    "key": "peach-fruit",
+    "name": "Peach fruit",
+    "category": "Food"
+  },
+  {
+    "key": "lemon",
+    "name": "Lemon",
+    "category": "Food"
+  },
+  {
+    "key": "cherry-tomato",
+    "name": "Cherry tomato",
+    "category": "Food"
+  },
+  {
+    "key": "pear",
+    "name": "Pear",
+    "category": "Food"
+  },
+  {
+    "key": "banana",
+    "name": "Banana",
+    "category": "Food"
+  },
+  {
+    "key": "watermelon",
+    "name": "Watermelon",
+    "category": "Food"
+  },
+  {
+    "key": "grapes",
+    "name": "Grapes",
+    "category": "Food"
+  },
+  {
+    "key": "strawberry",
+    "name": "Strawberry",
+    "category": "Food"
+  },
+  {
+    "key": "pineapple",
+    "name": "Pineapple",
+    "category": "Food"
+  },
+  {
+    "key": "avocado",
+    "name": "Avocado",
+    "category": "Food"
+  },
+  {
+    "key": "carrot",
+    "name": "Carrot",
+    "category": "Food"
+  },
+  {
+    "key": "pizza-slice",
+    "name": "Pizza slice",
+    "category": "Food"
+  },
+  {
+    "key": "burger",
+    "name": "Burger",
+    "category": "Food"
+  },
+  {
+    "key": "hot-dog",
+    "name": "Hot dog",
+    "category": "Food"
+  },
+  {
+    "key": "french-fries",
+    "name": "French fries",
+    "category": "Food"
+  },
+  {
+    "key": "taco",
+    "name": "Taco",
+    "category": "Food"
+  },
+  {
+    "key": "sushi",
+    "name": "Sushi",
+    "category": "Food"
+  },
+  {
+    "key": "noodles",
+    "name": "Noodles",
+    "category": "Food"
+  },
+  {
+    "key": "bread-loaf",
+    "name": "Bread loaf",
+    "category": "Food"
+  },
+  {
+    "key": "toast",
+    "name": "Toast",
+    "category": "Food"
+  },
+  {
+    "key": "pretzel",
+    "name": "Pretzel",
+    "category": "Food"
+  },
+  {
+    "key": "donut",
+    "name": "Donut",
+    "category": "Food"
+  },
+  {
+    "key": "cookie",
+    "name": "Cookie",
+    "category": "Food"
+  },
+  {
+    "key": "cupcake",
+    "name": "Cupcake",
+    "category": "Food"
+  },
+  {
+    "key": "birthday-cake",
+    "name": "Birthday cake",
+    "category": "Food"
+  },
+  {
+    "key": "ice-cream",
+    "name": "Ice cream",
+    "category": "Food"
+  },
+  {
+    "key": "lollipop",
+    "name": "Lollipop",
+    "category": "Food"
+  },
+  {
+    "key": "coffee-cup",
+    "name": "Coffee cup",
+    "category": "Food"
+  },
+  {
+    "key": "tea-cup",
+    "name": "Tea cup",
+    "category": "Food"
+  },
+  {
+    "key": "hot-chocolate",
+    "name": "Hot chocolate",
+    "category": "Food"
+  },
+  {
+    "key": "drink-bottle",
+    "name": "Drink bottle",
+    "category": "Food"
+  },
+  {
+    "key": "cutlery",
+    "name": "Cutlery",
+    "category": "Food"
+  },
+  {
+    "key": "oak-tree",
+    "name": "Oak tree",
+    "category": "Nature"
+  },
+  {
+    "key": "autumn-tree",
+    "name": "Autumn tree",
+    "category": "Nature"
+  },
+  {
+    "key": "cherry-blossom-tree",
+    "name": "Cherry blossom tree",
+    "category": "Nature"
+  },
+  {
+    "key": "pine-tree",
+    "name": "Pine tree",
+    "category": "Nature"
+  },
+  {
+    "key": "palm-tree",
+    "name": "Palm tree",
+    "category": "Nature"
+  },
+  {
+    "key": "cactus",
+    "name": "Cactus",
+    "category": "Nature"
+  },
+  {
+    "key": "leaf",
+    "name": "Leaf",
+    "category": "Nature"
+  },
+  {
+    "key": "four-leaf-clover",
+    "name": "Four leaf clover",
+    "category": "Nature"
+  },
+  {
+    "key": "daisy",
+    "name": "Daisy",
+    "category": "Nature"
+  },
+  {
+    "key": "rose-flower",
+    "name": "Rose flower",
+    "category": "Nature"
+  },
+  {
+    "key": "purple-flower",
+    "name": "Purple flower",
+    "category": "Nature"
+  },
+  {
+    "key": "sunflower",
+    "name": "Sunflower",
+    "category": "Nature"
+  },
+  {
+    "key": "mushroom",
+    "name": "Mushroom",
+    "category": "Nature"
+  },
+  {
+    "key": "mountain",
+    "name": "Mountain",
+    "category": "Nature"
+  },
+  {
+    "key": "volcano",
+    "name": "Volcano",
+    "category": "Nature"
+  },
+  {
+    "key": "camping-tent",
+    "name": "Camping tent",
+    "category": "Travel"
+  },
+  {
+    "key": "campfire",
+    "name": "Campfire",
+    "category": "Travel"
+  },
+  {
+    "key": "sun",
+    "name": "Sun",
+    "category": "Weather"
+  },
+  {
+    "key": "moon",
+    "name": "Moon",
+    "category": "Weather"
+  },
+  {
+    "key": "cloud",
+    "name": "Cloud",
+    "category": "Weather"
+  },
+  {
+    "key": "rainbow",
+    "name": "Rainbow",
+    "category": "Weather"
+  },
+  {
+    "key": "rain",
+    "name": "Rain",
+    "category": "Weather"
+  },
+  {
+    "key": "thunderstorm",
+    "name": "Thunderstorm",
+    "category": "Weather"
+  },
+  {
+    "key": "snow",
+    "name": "Snow",
+    "category": "Weather"
+  },
+  {
+    "key": "snowflake",
+    "name": "Snowflake",
+    "category": "Weather"
+  },
+  {
+    "key": "umbrella",
+    "name": "Umbrella",
+    "category": "Weather"
+  },
+  {
+    "key": "car",
+    "name": "Car",
+    "category": "Transport"
+  },
+  {
+    "key": "taxi",
+    "name": "Taxi",
+    "category": "Transport"
+  },
+  {
+    "key": "police-car",
+    "name": "Police car",
+    "category": "Transport"
+  },
+  {
+    "key": "bus",
+    "name": "Bus",
+    "category": "Transport"
+  },
+  {
+    "key": "van",
+    "name": "Van",
+    "category": "Transport"
+  },
+  {
+    "key": "ambulance",
+    "name": "Ambulance",
+    "category": "Transport"
+  },
+  {
+    "key": "delivery-truck",
+    "name": "Delivery truck",
+    "category": "Transport"
+  },
+  {
+    "key": "bicycle",
+    "name": "Bicycle",
+    "category": "Transport"
+  },
+  {
+    "key": "scooter",
+    "name": "Scooter",
+    "category": "Transport"
+  },
+  {
+    "key": "airplane",
+    "name": "Airplane",
+    "category": "Transport"
+  },
+  {
+    "key": "helicopter",
+    "name": "Helicopter",
+    "category": "Transport"
+  },
+  {
+    "key": "sailboat",
+    "name": "Sailboat",
+    "category": "Transport"
+  },
+  {
+    "key": "train",
+    "name": "Train",
+    "category": "Transport"
+  },
+  {
+    "key": "rocket",
+    "name": "Rocket",
+    "category": "Transport"
+  },
+  {
+    "key": "hot-air-balloon",
+    "name": "Hot air balloon",
+    "category": "Transport"
+  },
+  {
+    "key": "traffic-light",
+    "name": "Traffic light",
+    "category": "Transport"
+  },
+  {
+    "key": "suitcase",
+    "name": "Suitcase",
+    "category": "Travel"
+  },
+  {
+    "key": "compass",
+    "name": "Compass",
+    "category": "Travel"
+  },
+  {
+    "key": "globe",
+    "name": "Globe",
+    "category": "Travel"
+  },
+  {
+    "key": "map",
+    "name": "Map",
+    "category": "Travel"
+  },
+  {
+    "key": "smartphone",
+    "name": "Smartphone",
+    "category": "Technology"
+  },
+  {
+    "key": "tablet",
+    "name": "Tablet",
+    "category": "Technology"
+  },
+  {
+    "key": "monitor",
+    "name": "Monitor",
+    "category": "Technology"
+  },
+  {
+    "key": "keyboard",
+    "name": "Keyboard",
+    "category": "Technology"
+  },
+  {
+    "key": "computer-mouse",
+    "name": "Computer mouse",
+    "category": "Technology"
+  },
+  {
+    "key": "camera",
+    "name": "Camera",
+    "category": "Technology"
+  },
+  {
+    "key": "headphones",
+    "name": "Headphones",
+    "category": "Technology"
+  },
+  {
+    "key": "microphone",
+    "name": "Microphone",
+    "category": "Technology"
+  },
+  {
+    "key": "game-controller",
+    "name": "Game controller",
+    "category": "Technology"
+  },
+  {
+    "key": "battery-full",
+    "name": "Battery full",
+    "category": "Technology"
+  },
+  {
+    "key": "battery-low",
+    "name": "Battery low",
+    "category": "Technology"
+  },
+  {
+    "key": "usb-drive",
+    "name": "USB drive",
+    "category": "Technology"
+  },
+  {
+    "key": "wifi",
+    "name": "Wifi",
+    "category": "Technology"
+  },
+  {
+    "key": "computer-chip",
+    "name": "Computer chip",
+    "category": "Technology"
+  },
+  {
+    "key": "code-brackets",
+    "name": "Code brackets",
+    "category": "Technology"
+  },
+  {
+    "key": "database",
+    "name": "Database",
+    "category": "Technology"
+  },
+  {
+    "key": "server",
+    "name": "Server",
+    "category": "Technology"
+  },
+  {
+    "key": "padlock",
+    "name": "Padlock",
+    "category": "Work"
+  },
+  {
+    "key": "key",
+    "name": "Key",
+    "category": "Work"
+  },
+  {
+    "key": "shield",
+    "name": "Shield",
+    "category": "Work"
+  },
+  {
+    "key": "briefcase",
+    "name": "Briefcase",
+    "category": "Work"
+  },
+  {
+    "key": "folder",
+    "name": "Folder",
+    "category": "Work"
+  },
+  {
+    "key": "envelope",
+    "name": "Envelope",
+    "category": "Work"
+  },
+  {
+    "key": "clipboard",
+    "name": "Clipboard",
+    "category": "Work"
+  },
+  {
+    "key": "notebook",
+    "name": "Notebook",
+    "category": "Work"
+  },
+  {
+    "key": "book",
+    "name": "Book",
+    "category": "Work"
+  },
+  {
+    "key": "graduation-cap",
+    "name": "Graduation cap",
+    "category": "Work"
+  },
+  {
+    "key": "chart-bars",
+    "name": "Chart bars",
+    "category": "Work"
+  },
+  {
+    "key": "chart-growth",
+    "name": "Chart growth",
+    "category": "Work"
+  },
+  {
+    "key": "magnifying-glass",
+    "name": "Magnifying glass",
+    "category": "Work"
+  },
+  {
+    "key": "clock",
+    "name": "Clock",
+    "category": "Work"
+  },
+  {
+    "key": "alarm-clock",
+    "name": "Alarm clock",
+    "category": "Work"
+  },
+  {
+    "key": "calendar",
+    "name": "Calendar",
+    "category": "Work"
+  },
+  {
+    "key": "calculator",
+    "name": "Calculator",
+    "category": "Work"
+  },
+  {
+    "key": "light-switch",
+    "name": "Light switch",
+    "category": "Work"
+  },
+  {
+    "key": "wrench",
+    "name": "Wrench",
+    "category": "Work"
+  },
+  {
+    "key": "hammer",
+    "name": "Hammer",
+    "category": "Work"
+  },
+  {
+    "key": "scissors",
+    "name": "Scissors",
+    "category": "Work"
+  },
+  {
+    "key": "ruler",
+    "name": "Ruler",
+    "category": "Work"
+  },
+  {
+    "key": "pencil",
+    "name": "Pencil",
+    "category": "Work"
+  },
+  {
+    "key": "paint-brush",
+    "name": "Paint brush",
+    "category": "Work"
+  },
+  {
+    "key": "paint-palette",
+    "name": "Paint palette",
+    "category": "Work"
+  },
+  {
+    "key": "football",
+    "name": "Football",
+    "category": "Sports"
+  },
+  {
+    "key": "basketball",
+    "name": "Basketball",
+    "category": "Sports"
+  },
+  {
+    "key": "tennis-ball",
+    "name": "Tennis ball",
+    "category": "Sports"
+  },
+  {
+    "key": "baseball",
+    "name": "Baseball",
+    "category": "Sports"
+  },
+  {
+    "key": "rugby-ball",
+    "name": "Rugby ball",
+    "category": "Sports"
+  },
+  {
+    "key": "bowling-ball",
+    "name": "Bowling ball",
+    "category": "Sports"
+  },
+  {
+    "key": "tennis-racket",
+    "name": "Tennis racket",
+    "category": "Sports"
+  },
+  {
+    "key": "dumbbell",
+    "name": "Dumbbell",
+    "category": "Sports"
+  },
+  {
+    "key": "skateboard",
+    "name": "Skateboard",
+    "category": "Sports"
+  },
+  {
+    "key": "trophy",
+    "name": "Trophy",
+    "category": "Sports"
+  },
+  {
+    "key": "gold-medal",
+    "name": "Gold medal",
+    "category": "Sports"
+  },
+  {
+    "key": "whistle",
+    "name": "Whistle",
+    "category": "Sports"
+  },
+  {
+    "key": "medical-cross",
+    "name": "Medical cross",
+    "category": "Health"
+  },
+  {
+    "key": "first-aid-kit",
+    "name": "First aid kit",
+    "category": "Health"
+  },
+  {
+    "key": "pill",
+    "name": "Pill",
+    "category": "Health"
+  },
+  {
+    "key": "bandage",
+    "name": "Bandage",
+    "category": "Health"
+  },
+  {
+    "key": "heart-pulse",
+    "name": "Heart pulse",
+    "category": "Health"
+  },
+  {
+    "key": "thermometer",
+    "name": "Thermometer",
+    "category": "Health"
+  },
+  {
+    "key": "stethoscope",
+    "name": "Stethoscope",
+    "category": "Health"
+  },
+  {
+    "key": "balloon",
+    "name": "Balloon",
+    "category": "Celebrations"
+  },
+  {
+    "key": "party-hat",
+    "name": "Party hat",
+    "category": "Celebrations"
+  },
+  {
+    "key": "crown",
+    "name": "Crown",
+    "category": "Celebrations"
+  },
+  {
+    "key": "diamond",
+    "name": "Diamond",
+    "category": "Celebrations"
+  },
+  {
+    "key": "wedding-rings",
+    "name": "Wedding rings",
+    "category": "Celebrations"
+  },
+  {
+    "key": "sparkles",
+    "name": "Sparkles",
+    "category": "Celebrations"
+  },
+  {
+    "key": "ribbon-bow",
+    "name": "Ribbon bow",
+    "category": "Celebrations"
+  },
+  {
+    "key": "music-notes",
+    "name": "Music notes",
+    "category": "Celebrations"
+  },
+  {
+    "key": "cinema-clapper",
+    "name": "Cinema clapper",
+    "category": "Celebrations"
+  },
+  {
+    "key": "present-box",
+    "name": "Present box",
+    "category": "Celebrations"
+  },
+  {
+    "key": "arrow-left",
+    "name": "Arrow left",
+    "category": "Arrows"
+  },
+  {
+    "key": "arrow-up",
+    "name": "Arrow up",
+    "category": "Arrows"
+  },
+  {
+    "key": "arrow-down",
+    "name": "Arrow down",
+    "category": "Arrows"
+  },
+  {
+    "key": "double-arrow",
+    "name": "Double arrow",
+    "category": "Arrows"
+  },
+  {
+    "key": "curved-arrow",
+    "name": "Curved arrow",
+    "category": "Arrows"
+  },
+  {
+    "key": "turn-arrow",
+    "name": "Turn arrow",
+    "category": "Arrows"
+  },
+  {
+    "key": "diagonal-arrow-45",
+    "name": "Diagonal arrow 45",
+    "category": "Arrows"
+  },
+  {
+    "key": "diagonal-arrow-135",
+    "name": "Diagonal arrow 135",
+    "category": "Arrows"
+  },
+  {
+    "key": "diagonal-arrow-225",
+    "name": "Diagonal arrow 225",
+    "category": "Arrows"
+  },
+  {
+    "key": "diagonal-arrow-315",
+    "name": "Diagonal arrow 315",
+    "category": "Arrows"
+  },
+  {
+    "key": "blue-callout",
+    "name": "Blue callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "pink-callout",
+    "name": "Pink callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "green-callout",
+    "name": "Green callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "purple-callout",
+    "name": "Purple callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "orange-callout",
+    "name": "Orange callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "thought-bubble",
+    "name": "Thought bubble",
+    "category": "Callouts"
+  },
+  {
+    "key": "burst-callout",
+    "name": "Burst callout",
+    "category": "Callouts"
+  },
+  {
+    "key": "triangle",
+    "name": "Triangle",
+    "category": "Shapes"
+  },
+  {
+    "key": "square",
+    "name": "Square",
+    "category": "Shapes"
+  },
+  {
+    "key": "pentagon",
+    "name": "Pentagon",
+    "category": "Shapes"
+  },
+  {
+    "key": "hexagon",
+    "name": "Hexagon",
+    "category": "Shapes"
+  },
+  {
+    "key": "octagon",
+    "name": "Octagon",
+    "category": "Shapes"
+  },
+  {
+    "key": "circle",
+    "name": "Circle",
+    "category": "Shapes"
+  },
+  {
+    "key": "ring",
+    "name": "Ring",
+    "category": "Shapes"
+  },
+  {
+    "key": "diamond-shape",
+    "name": "Diamond shape",
+    "category": "Shapes"
+  },
+  {
+    "key": "success-badge",
+    "name": "Success badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "error-badge",
+    "name": "Error badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "plus-badge",
+    "name": "Plus badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "minus-badge",
+    "name": "Minus badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "pause-badge",
+    "name": "Pause badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "play-badge",
+    "name": "Play badge",
+    "category": "Symbols"
+  },
+  {
+    "key": "stop-sign",
+    "name": "Stop sign",
+    "category": "Symbols"
+  },
+  {
+    "key": "no-entry",
+    "name": "No entry",
+    "category": "Symbols"
+  },
+  {
+    "key": "prohibited",
+    "name": "Prohibited",
+    "category": "Symbols"
+  },
+  {
+    "key": "refresh",
+    "name": "Refresh",
+    "category": "Symbols"
+  },
+  {
+    "key": "link",
+    "name": "Link",
+    "category": "Symbols"
+  },
+  {
+    "key": "bookmark",
+    "name": "Bookmark",
+    "category": "Symbols"
+  },
+  {
+    "key": "location-marker",
+    "name": "Location marker",
+    "category": "Symbols"
+  },
+  {
+    "key": "eye",
+    "name": "Eye",
+    "category": "Symbols"
+  },
+  {
+    "key": "fingerprint",
+    "name": "Fingerprint",
+    "category": "Symbols"
+  },
+  {
+    "key": "gear",
+    "name": "Gear",
+    "category": "Symbols"
+  },
+  {
+    "key": "sleepy-face",
+    "name": "Sleepy face",
+    "category": "Smileys"
+  },
+  {
+    "key": "sad-face",
+    "name": "Sad face",
+    "category": "Smileys"
+  },
+  {
+    "key": "surprised-face",
+    "name": "Surprised face",
+    "category": "Smileys"
+  },
+  {
+    "key": "winking-face",
+    "name": "Winking face",
+    "category": "Smileys"
+  },
+  {
+    "key": "cool-face",
+    "name": "Cool face",
+    "category": "Smileys"
+  },
+  {
+    "key": "nervous-face",
+    "name": "Nervous face",
+    "category": "Smileys"
+  },
+  {
+    "key": "kiss-face",
+    "name": "Kiss face",
+    "category": "Smileys"
+  },
+  {
+    "key": "silly-face",
+    "name": "Silly face",
+    "category": "Smileys"
+  },
+  {
+    "key": "thinking-face",
+    "name": "Thinking face",
+    "category": "Smileys"
+  },
+  {
+    "key": "happy-tears-face",
+    "name": "Happy tears face",
+    "category": "Smileys"
+  },
+  {
+    "key": "neutral-face",
+    "name": "Neutral face",
+    "category": "Smileys"
+  },
+  {
+    "key": "angry-face",
+    "name": "Angry face",
+    "category": "Smileys"
+  }
+]

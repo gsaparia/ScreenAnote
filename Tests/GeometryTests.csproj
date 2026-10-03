@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><NoWarn>$(NoWarn);CA1416</NoWarn></PropertyGroup>
+ <ItemGroup><PackageReference Include="System.Drawing.Common" Version="8.0.0" /></ItemGroup>
+ <ItemGroup><Compile Include="../AudioFrames.cs" Link="AudioFrames.cs" /><Compile Include="../SelectionGeometry.cs" Link="SelectionGeometry.cs" /><Compile Include="../VideoFrames.cs" Link="VideoFrames.cs" /><Compile Include="../ShapeGeometry.cs" Link="ShapeGeometry.cs" /><Compile Include="../CanvasLayout.cs" Link="CanvasLayout.cs" /><Compile Include="../StickerCatalog.cs" Link="StickerCatalog.cs" /><Compile Include="../EditTool.cs" Link="EditTool.cs" /><Compile Include="../Annotation.cs" Link="Annotation.cs" /><Compile Include="../AnnotationTransfer.cs" Link="AnnotationTransfer.cs" /><Compile Include="../CounterSequence.cs" Link="CounterSequence.cs" /></ItemGroup>
+</Project>
