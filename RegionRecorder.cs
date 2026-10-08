@@ -9,11 +9,13 @@ internal sealed class RegionRecorder:IDisposable
     private readonly TaskCompletionSource ready=new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly RecordingClock clock=new(RecordingClock.Now);
     private readonly Task worker;
-    private WaveMicrophone? microphone;private volatile bool microphoneEnabled;
+    private SystemAudio? speaker;private WaveMicrophone? microphone;private volatile bool microphoneEnabled;
     private string? microphoneError;
     private long stoppedAt=-1;
+    private string shutdownStage="Stopping capture";
+    public string ShutdownStage=>Volatile.Read(ref shutdownStage);
     private long ActiveTicks{get{long value=Interlocked.Read(ref stoppedAt);return value>=0?value:clock.Elapsed(RecordingClock.Now);}}
-    public bool MicrophoneEnabled{get=>microphoneEnabled;set{microphoneEnabled=value;if(microphone!=null)microphone.Enabled=value;}}
+    public bool MicrophoneEnabled{get=>microphoneEnabled;set{microphoneEnabled=value;if(microphone!=null)microphone.Enabled=value;if(speaker!=null)speaker.Enabled=value;}}
     public string? TakeMicrophoneError()=>Interlocked.Exchange(ref microphoneError,null);
     public string FilePath{get;}
     public Size Output{get;}
@@ -21,7 +23,7 @@ internal sealed class RegionRecorder:IDisposable
     public TimeSpan Duration=>TimeSpan.FromTicks(ActiveTicks);
     public Task Ready=>ready.Task;
     public Task Completion=>worker;
-    public void TogglePause(){clock.SetPaused(!Paused,RecordingClock.Now);microphone?.Discard();}
+    public void TogglePause(){clock.SetPaused(!Paused,RecordingClock.Now);microphone?.Discard();speaker?.Discard();}
     public RegionRecorder(Rectangle region,bool microphoneEnabled=false)
     {
         this.microphoneEnabled=microphoneEnabled;
@@ -36,23 +38,27 @@ internal sealed class RegionRecorder:IDisposable
             using var encoder=new Mp4Writer(FilePath,Output.Width,Output.Height,true);
             using var capture=new Bitmap(region.Width,region.Height,PixelFormat.Format32bppRgb);
             using var frame=new Bitmap(Output.Width,Output.Height,PixelFormat.Format32bppRgb);
-            using var screen=Graphics.FromImage(capture);using var resized=Graphics.FromImage(frame);
+            using var resized=Graphics.FromImage(frame);
             resized.InterpolationMode=InterpolationMode.HighQualityBilinear;
             var rgb=new byte[Output.Width*Output.Height*4];var pending=new byte[Output.Width*Output.Height*3/2];var next=new byte[pending.Length];
             bool hasFrame=false;long previous=0;var stopwatch=Stopwatch.StartNew();double due=0;
             clock.Reset(RecordingClock.Now);using var mic=new WaveMicrophone(microphoneEnabled,()=>Paused);microphone=mic;mic.Enabled=microphoneEnabled;
+            using var system=new SystemAudio(microphoneEnabled,()=>Paused);speaker=system;system.Enabled=microphoneEnabled;
             long audioWritten=0;
             void WriteAudioUntil(long ticks)
             {
                 long target=AudioFrames.Samples(ticks);
-                while(audioWritten<target){int count=(int)Math.Min(AudioFrames.ChunkSamples,target-audioWritten);encoder.WriteAudio(mic.Read(count),audioWritten);audioWritten+=count;}
-                if(mic.TakeError() is string error){microphoneEnabled=false;microphoneError=error;}
+                while(audioWritten<target){int count=(int)Math.Min(AudioFrames.ChunkSamples,target-audioWritten);encoder.WriteAudio(microphoneEnabled?AudioMix.Mix(mic.Read(count),system.Read(count)):new byte[count*2],audioWritten);audioWritten+=count;}
+                if(mic.TakeError() is string error)microphoneError=error;
+                if(system.TakeError() is string systemError)microphoneError=systemError;
             }
+            // Report startup success only after the desktop capture actually works.
+            RecordingScreenCapture.CopyFrame(capture,region);
             ready.TrySetResult();
             while(!stop.IsCancellationRequested)
             {
                 if(Paused){stop.Token.WaitHandle.WaitOne(30);due=stopwatch.Elapsed.TotalMilliseconds;continue;}
-                screen.CopyFromScreen(region.Location,Point.Empty,region.Size,CopyPixelOperation.SourceCopy);
+                RecordingScreenCapture.CopyFrame(capture,region);
                 resized.DrawImage(capture,new Rectangle(Point.Empty,Output));
                 var data=frame.LockBits(new Rectangle(Point.Empty,Output),ImageLockMode.ReadOnly,PixelFormat.Format32bppRgb);
                 try{for(int y=0;y<Output.Height;y++)Marshal.Copy(data.Scan0+y*data.Stride,rgb,y*Output.Width*4,Output.Width*4);}finally{frame.UnlockBits(data);}
@@ -63,10 +69,10 @@ internal sealed class RegionRecorder:IDisposable
                 (pending,next)=(next,pending);hasFrame=true;previous=now;
                 due+=1000d/VideoFrames.Fps;int wait=(int)Math.Max(0,due-stopwatch.Elapsed.TotalMilliseconds);if(wait>0)stop.Token.WaitHandle.WaitOne(wait);else due=stopwatch.Elapsed.TotalMilliseconds;
             }
-            mic.StopCapture();long endTime=Math.Max(previous+VideoFrames.FrameTicks,ActiveTicks);
+            shutdownStage="Stopping microphone";mic.StopCapture();shutdownStage="Stopping speaker audio";system.StopCapture();shutdownStage="Writing final audio/video";long endTime=Math.Max(previous+VideoFrames.FrameTicks,ActiveTicks);
             if(hasFrame){encoder.Write(pending,previous,endTime-previous);WriteAudioUntil(endTime);}
-            microphone=null;
-            encoder.Complete();
+            microphone=null;speaker=null;
+            shutdownStage="Finalizing MP4";encoder.Complete();shutdownStage="Cleaning up recorder";
         }
         catch(Exception error){ready.TrySetException(error);throw;}
     }

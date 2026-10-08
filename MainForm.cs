@@ -14,7 +14,7 @@ internal sealed class MainForm:Form
     private readonly ModernButton customColour=new(){Text="Colour",Width=64,Height=34};
     private readonly NumericUpDown counterDiameter=new(){Minimum=12,Maximum=400,Value=42,Width=55};
     private readonly Label counterSizeLabel=new(){Text="Size",AutoSize=true,Padding=new Padding(0,7,0,0)};
-    private readonly ModernButton borderButton=new(){Text="Border…",Width=72,Height=28};
+    private readonly ModernButton borderButton=new(){Text="Text box…",Width=82,Height=28};
     private readonly ContextMenuStrip objectMenu=new();
     private readonly List<(ModernButton Button,EditTool Tool)> toolButtons=new();
     private readonly ToolTip tips=new(){AutoPopDelay=7000};
@@ -35,7 +35,7 @@ internal sealed class MainForm:Form
     private readonly TextBox stickerSearch=new(){PlaceholderText="Search smile, arrow, heart…",Width=218};
     public MainForm()
     {
-        Text="ScreenAnote — Compact Canvas";FormBorderStyle=FormBorderStyle.None;Padding=new Padding(1);AutoScaleMode=AutoScaleMode.Dpi;AutoScaleDimensions=new SizeF(96,96);Width=1440;Height=850;MinimumSize=new Size(880,620);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);ForeColor=Theme.Ink;BackColor=Theme.Surface;KeyPreview=true;
+        Icon=AppIcon.Load();Text="ScreenAnote — Compact Canvas";FormBorderStyle=FormBorderStyle.None;Padding=new Padding(1);AutoScaleMode=AutoScaleMode.Dpi;AutoScaleDimensions=new SizeF(96,96);Width=1440;Height=850;MinimumSize=new Size(880,620);StartPosition=FormStartPosition.CenterScreen;Font=new Font("Segoe UI",10);ForeColor=Theme.Ink;BackColor=Theme.Surface;KeyPreview=true;
         BuildHeader();BuildPalette();BuildContext();BuildZoom();BuildDrawer();
         editor.BackColor=Theme.Surface;editor.ForeColor=Theme.Muted;workspace.Controls.Add(editor);workspace.Controls.Add(palette);workspace.Controls.Add(context);workspace.Controls.Add(zoomCard);workspace.Controls.Add(drawer);
         Controls.Add(workspace);workspace.BringToFront();
@@ -59,7 +59,7 @@ internal sealed class MainForm:Form
     }
     private ModernButton Button(string text,string symbol,int width,Action action,bool vertical=false,bool primary=false)
     {
-        var b=new ModernButton{Text=text,Symbol=symbol,Width=width,Height=vertical?62:38,Vertical=vertical,Primary=primary,AccessibleName=text,Margin=new Padding(2)};b.Click+=(_,_)=>Safe(action);return b;
+        var b=new ModernButton{Text=vertical?"":text,Symbol=symbol,Width=width,Height=vertical?62:38,Vertical=vertical,Primary=primary,AccessibleName=text,Margin=new Padding(2)};b.Click+=(_,_)=>Safe(action);if(vertical)Hint(b,text.Length>0?text:symbol);return b;
     }
     private void Hint(Control c,string text){tips.SetToolTip(c,text);c.AccessibleDescription=text;}
     private void BuildHeader()
@@ -80,7 +80,7 @@ internal sealed class MainForm:Form
         header.Controls.Add(brandPanel);header.Controls.Add(commands);Controls.Add(header);
         async Task Run(Func<Task> action){try{await action();}catch(Exception ex){MessageBox.Show(this,ex.Message,"ScreenAnote",MessageBoxButtons.OK,MessageBoxIcon.Error);}}
         void CaptureItem(string text,string mode){captureMenu.Items.Add(text,null,async(_,_)=>await Run(()=>DoCapture(mode)));}
-        CaptureItem("Selected region","region");CaptureItem("Window","window");CaptureItem("Full screen (all monitors)","full");CaptureItem("Scrolling browser area","scroll");
+        CaptureItem("Selected region","region");CaptureItem("Window","window");CaptureItem("Full screen (all monitors)","full");CaptureItem("Scrolling browser area","scroll");CaptureItem("Full webpage from Browser","scroll");
         captureMenu.Items.Add("Full web page from URL",null,(_,_)=>Safe(()=>{if(!ConfirmReplace())return;using var form=new WebPageForm();if(form.ShowDialog(this)==DialogResult.OK && form.Result!=null)Replace(form.Result);}));
         captureMenu.Items.Add("Open image…",null,(_,_)=>Safe(Open));captureMenu.Items.Add("Import clipboard image (Ctrl+V)",null,(_,_)=>Safe(PasteClipboard));captureMenu.Items.Add("Record selected region…",null,async(_,_)=>await Run(RecordVideo));captureMenu.Items.Add(new ToolStripSeparator());captureMenu.Items.Add(new ToolStripLabel("Capture delay (seconds)"));captureMenu.Items.Add(new ToolStripControlHost(delay));
         foreach(var menu in new[]{captureMenu,moreMenu,shapeMenu,privacyMenu,objectMenu}){menu.Font=Font;menu.BackColor=Color.White;menu.ForeColor=Theme.Ink;}
@@ -138,24 +138,38 @@ internal sealed class MainForm:Form
         customColour.Click+=(_,_)=>Safe(()=>{using var dialog=new ColorDialog{Color=editor.Selected?.Color??editor.Ink};if(dialog.ShowDialog(this)==DialogResult.OK){editor.Ink=dialog.Color;customColour.BackColor=dialog.Color;customColour.Invalidate();}});row.Controls.Add(customColour);
         row.Controls.Add(strokeLabel);row.Controls.Add(stroke);row.Controls.Add(sizeLabel);row.Controls.Add(size);
         stroke.ValueChanged+=(_,_)=>{if(!syncing)editor.Stroke=(int)stroke.Value;};size.ValueChanged+=(_,_)=>{if(!syncing)editor.FontSize=(int)size.Value;};
-        borderButton.Click+=(_,_)=>EditTextBorder();row.Controls.Add(borderButton);Hint(borderButton,"Configure text box border style, width and colour");
+        borderButton.Click+=(_,_)=>EditTextBorder();row.Controls.Add(borderButton);Hint(borderButton,"Configure text box background, border style, width and colour");
         row.Controls.Add(counterSizeLabel);row.Controls.Add(counterDiameter);counterDiameter.ValueChanged+=(_,_)=>{if(!syncing)editor.CounterSize=(int)counterDiameter.Value;};Hint(counterDiameter,"Counter diameter in original image pixels (12–400)");row.Controls.Add(counterLabel);
         ModernButton? actions=null;actions=Button("","⋯",34,()=>objectMenu.Show(actions!,new Point(0,actions!.Height)));actions.Height=28;row.Controls.Add(actions);Hint(actions,"Edit text, text border, bring to front, delete and reset counter");
-        var edit=objectMenu.Items.Add("Edit text…",null,(_,_)=>Safe(editor.EditSelectedText));var border=objectMenu.Items.Add("Text box border…",null,(_,_)=>EditTextBorder());var front=objectMenu.Items.Add("Bring selection to front",null,(_,_)=>editor.BringSelectedToFront());var delete=objectMenu.Items.Add("Delete selection",null,(_,_)=>editor.DeleteSelected());objectMenu.Items.Add(new ToolStripSeparator());objectMenu.Items.Add("Reset counter to 1",null,(_,_)=>editor.ResetCounter());
-        objectMenu.Opening+=(_,_)=>{edit.Enabled=editor.SelectionCount==1&&editor.Selected?.Kind==EditTool.Text;border.Enabled=editor.SelectionHasText||editor.Tool==EditTool.Text;front.Enabled=delete.Enabled=editor.Selected!=null;};
+        var edit=objectMenu.Items.Add("Edit text…",null,(_,_)=>Safe(editor.EditSelectedText));var border=objectMenu.Items.Add("Text box border…",null,(_,_)=>EditTextBorder());var background=objectMenu.Items.Add("Text box background…",null,(_,_)=>EditTextBackground());var front=objectMenu.Items.Add("Bring selection to front",null,(_,_)=>editor.BringSelectedToFront());var delete=objectMenu.Items.Add("Delete selection",null,(_,_)=>editor.DeleteSelected());objectMenu.Items.Add(new ToolStripSeparator());objectMenu.Items.Add("Reset counter to 1",null,(_,_)=>editor.ResetCounter());
+        objectMenu.Opening+=(_,_)=>{edit.Enabled=editor.SelectionCount==1&&editor.Selected?.Kind==EditTool.Text;border.Enabled=editor.SelectionHasText||editor.Tool==EditTool.Text;background.Enabled=editor.Selected?.Kind==EditTool.Text||editor.Tool==EditTool.Text;front.Enabled=delete.Enabled=editor.Selected!=null;};
         Hint(stroke,"Line width in original image pixels");Hint(size,"Font size in original image pixels");context.Visible=false;
+    }
+    private void EditTextBackground()
+    {
+        var color=editor.Selected?.Kind==EditTool.Text?editor.Selected.TextBackground:editor.DefaultTextBackground;
+        using var form=new Form{Text="Text box background",ClientSize=new Size(310,150),StartPosition=FormStartPosition.CenterParent,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false,MinimizeBox=false,Font=Font};
+        var transparent=new CheckBox{Text="Transparent background",Checked=color.A==0,Location=new Point(20,18),AutoSize=true};
+        var choose=new ModernButton{Text="Choose colour…",Location=new Point(20,50),Size=new Size(160,34),BackColor=color.A==0?Color.White:color};
+        choose.Click+=(_,_)=>{using var dialog=new ColorDialog{FullOpen=true,Color=color.A==0?Color.White:color};if(dialog.ShowDialog(form)==DialogResult.OK){color=dialog.Color;transparent.Checked=false;choose.BackColor=color;choose.Invalidate();}};
+        var apply=new ModernButton{Text="Apply",Primary=true,Location=new Point(110,100),Size=new Size(80,32),DialogResult=DialogResult.OK};
+        var cancel=new ModernButton{Text="Cancel",Location=new Point(205,100),Size=new Size(80,32),DialogResult=DialogResult.Cancel};form.Controls.AddRange([transparent,choose,apply,cancel]);form.AcceptButton=apply;form.CancelButton=cancel;
+        if(form.ShowDialog(this)==DialogResult.OK)editor.SetTextBackground(transparent.Checked?Color.Transparent:color.A==0?Color.White:color);
     }
     private void EditTextBorder()
     {
         var a=editor.Selected?.Kind==EditTool.Text?editor.Selected:null;
-        using var form=new Form{Text="Text box border",ClientSize=new Size(320,215),Font=Font,StartPosition=FormStartPosition.CenterParent,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false,MinimizeBox=false,BackColor=Color.White};
+        using var form=new Form{Text="Text box appearance",ClientSize=new Size(320,290),Font=Font,StartPosition=FormStartPosition.CenterParent,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false,MinimizeBox=false,BackColor=Color.White};
         var styles=new ComboBox{DropDownStyle=ComboBoxStyle.DropDownList,Location=new Point(110,20),Width=185};styles.Items.AddRange(Enum.GetNames<TextBorderStyle>());styles.SelectedIndex=(int)(a?.BorderStyle??editor.DefaultBorder);
         var width=new NumericUpDown{Minimum=1,Maximum=20,Value=(decimal)(a?.BorderWidth??editor.DefaultBorderWidth),Location=new Point(110,66),Width=80};
         var color=a?.BorderColor??editor.DefaultBorderColor;var swatch=new ModernButton{Text="Colour…",Location=new Point(110,108),Width=120,Height=32,BackColor=color};swatch.Click+=(_,_)=>{using var dialog=new ColorDialog{Color=color};if(dialog.ShowDialog(form)==DialogResult.OK){color=dialog.Color;swatch.BackColor=color;swatch.Invalidate();}};
         foreach(var (label,y) in new[]{("Style",23),("Width",69),("Colour",113)})form.Controls.Add(new Label{Text=label,Location=new Point(20,y),AutoSize=true});
-        var apply=new ModernButton{Text="Apply",Primary=true,Location=new Point(110,163),Width=90,Height=34,DialogResult=DialogResult.OK};var cancel=new ModernButton{Text="Cancel",Location=new Point(210,163),Width=85,Height=34,DialogResult=DialogResult.Cancel};
-        form.Controls.AddRange([styles,width,swatch,apply,cancel]);form.AcceptButton=apply;form.CancelButton=cancel;
-        if(form.ShowDialog(this)==DialogResult.OK)editor.SetTextBorder((TextBorderStyle)styles.SelectedIndex,(float)width.Value,color);
+        var background=a?.TextBackground??editor.DefaultTextBackground;
+        var transparent=new CheckBox{Text="Transparent background",Checked=background.A==0,Location=new Point(20,153),AutoSize=true};
+        var bg=new ModernButton{Text="Background…",Location=new Point(110,187),Size=new Size(150,32),BackColor=background.A==0?Color.White:background};bg.Click+=(_,_)=>{using var d=new ColorDialog{FullOpen=true,Color=background.A==0?Color.White:background};if(d.ShowDialog(form)==DialogResult.OK){background=d.Color;transparent.Checked=false;bg.BackColor=background;bg.Invalidate();}};
+        var apply=new ModernButton{Text="Apply",Primary=true,Location=new Point(110,238),Width=90,Height=34,DialogResult=DialogResult.OK};var cancel=new ModernButton{Text="Cancel",Location=new Point(210,238),Width=85,Height=34,DialogResult=DialogResult.Cancel};
+        form.Controls.AddRange([styles,width,swatch,transparent,bg,apply,cancel]);form.AcceptButton=apply;form.CancelButton=cancel;
+        if(form.ShowDialog(this)==DialogResult.OK){editor.SetTextBorder((TextBorderStyle)styles.SelectedIndex,(float)width.Value,color);editor.SetTextBackground(transparent.Checked?Color.Transparent:background.A==0?Color.White:background);}
     }
     private void BuildZoom()
     {

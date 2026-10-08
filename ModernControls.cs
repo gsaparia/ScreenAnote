@@ -37,19 +37,22 @@ internal sealed class ModernButton:Button
     {
         // Floating controls are opaque siblings of the canvas. Never recursively
         // repaint the image through a chain of transparent parent controls.
-        e.Graphics.Clear(Parent?.BackColor??Color.White);
+        var parent=Parent;while(parent!=null && parent.BackColor.A<255)parent=parent.Parent;
+        e.Graphics.Clear(parent?.BackColor??Theme.Surface);
     }
     protected override void OnMouseEnter(EventArgs e){hovered=true;Invalidate();base.OnMouseEnter(e);}
     protected override void OnMouseLeave(EventArgs e){hovered=false;Invalidate();base.OnMouseLeave(e);}
     protected override void OnPaint(PaintEventArgs e)
     {
+        // Clear again: native Button painting can bypass OnPaintBackground.
+        OnPaintBackground(e);
         var g=e.Graphics;float dpi=DeviceDpi/96f;g.SmoothingMode=SmoothingMode.AntiAlias;var fill=Primary?(hovered?Color.FromArgb(27,71,217):Theme.Accent):Selected?Color.FromArgb(225,232,255):hovered?Theme.Surface:BackColor;
         using var path=Theme.Round(new RectangleF(1,1,Width-2,Height-2),9);using var brush=new SolidBrush(fill);g.FillPath(brush,path);
         if(Outline || Artwork!=null){using var border=new Pen(Selected||hovered?Theme.Accent:Theme.Line);g.DrawPath(border,path);}
         if(Underline && Selected){using var bar=new Pen(Theme.Accent,2);g.DrawLine(bar,4,Height-2,Width-4,Height-2);}
         if(Artwork!=null){var bounds=new Size(Math.Max(1,Width-12),Math.Max(1,Height-10));if(thumbnail==null||thumbnail.Size!=bounds){thumbnail?.Dispose();thumbnail=new Bitmap(bounds.Width,bounds.Height);using var tg=Graphics.FromImage(thumbnail);tg.InterpolationMode=InterpolationMode.HighQualityBicubic;tg.DrawImage(Artwork,new Rectangle(Point.Empty,bounds));}g.DrawImageUnscaled(thumbnail,6,5);return;}
         var color=!Enabled?Theme.Muted:Primary||(!Selected&&fill.GetBrightness()<.42f)?Color.White:Selected?Theme.Accent:Theme.Ink;
-        if(Symbol.Length>0){var icon=new RectangleF(Vertical || Text.Length==0?(Width-24*dpi)/2:10*dpi,Vertical?9*dpi:(Height-24*dpi)/2,24*dpi,24*dpi);DrawIcon(g,icon,Symbol,color);}
+        if(Symbol.Length>0){var icon=new RectangleF(Vertical || Text.Length==0?(Width-24*dpi)/2:10*dpi,Vertical && Text.Length>0?9*dpi:(Height-24*dpi)/2,24*dpi,24*dpi);DrawIcon(g,icon,Symbol,color);}
         var text=Vertical?new Rectangle(0,Height-(int)(24*dpi),Width,(int)(21*dpi)):new Rectangle(Symbol.Length>0?(int)(40*dpi):5,0,Width-(Symbol.Length>0?(int)(45*dpi):10),Height);
         if(Text.Length>0)TextRenderer.DrawText(g,Text,Font,text,color,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis);
         if(Focused){using var pen=new Pen(Theme.Accent){DashStyle=DashStyle.Dot};g.DrawRectangle(pen,3,3,Width-7,Height-7);}

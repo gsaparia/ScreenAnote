@@ -1,4 +1,4 @@
-# ScreenAnote v6 — Compact Canvas screenshot editor and recorder
+# ScreenAnote v7 — Compact Canvas screenshot editor and recorder
 
 Windows x64 application plus complete C# Windows Forms source project. No AI services or screenshot uploads.
 Local annotation and screen capture; URL browsing makes ordinary web requests.
@@ -19,7 +19,7 @@ Windows in the delivery environment.
 1. Install the **.NET 8 SDK** on Windows (https://dotnet.microsoft.com/download/dotnet/8.0).
 2. Extract this entire ZIP to a writable folder.
 3. Double-click **Run.cmd**, or open **ScreenAnote.csproj** in a Visual Studio version supporting .NET 8 and run it.
-4. The first build restores the Microsoft.Web.WebView2 NuGet package and needs internet access.
+4. The first build restores the Microsoft.Web.WebView2 and NAudio NuGet packages and needs internet access.
 5. For URL capture, install **Microsoft Edge WebView2 Evergreen Runtime** if absent:
    https://developer.microsoft.com/microsoft-edge/webview2/
 
@@ -51,9 +51,64 @@ if produced. The included App folder is framework-dependent; Publish.cmd produce
   resize borders, keyboard focus indicators, labels and tooltips.
   Screenshot exports contain no floating application controls.
 
+## Feature 07/10-1 — Full webpage from Browser
+
+Both **New capture → Scrolling browser area** and **Full webpage from Browser**
+now use the exact original V6 capture workflow and scrolling engine. Open your
+browser at the desired starting position, select only the scrolling content, and
+keep the browser unobstructed. There is no browser-window list, automatic scroll
+positioning or return-to-start phase. Start at the top for the whole page. Escape
+stops capture and the page remains at its final scroll position.
+
+`ScrollingCapture.cs`, `Capture.cs` and the `DoCapture` method were restored directly
+from the original V6 ZIP and compared exactly. Existing V6 overlap matching and
+capture limits are retained. URL capture keeps its original WebView2 path.
+
+## Native recording bitmap update (7.0.5)
+
+Screen recording now captures into a native screen-compatible memory DC and
+32-bit top-down bitmap, then transfers pixels into the managed recording frame.
+The selected region keeps its original desktop coordinates, including negative X
+or Y for monitors to the left or above the primary monitor. Capture errors show
+the failing native operation, Windows error code and region dimensions.
+
+## Recording startup capture update (7.0.4)
+
+Recording uses an explicit desktop GetDC/BitBlt/ReleaseDC path with fresh
+source/destination handles per frame. Invalid-handle/access-denied failures get
+one retry after reacquiring handles. Startup is confirmed only after the first
+frame is captured successfully; inaccessible desktops show a capture-specific
+error. The Stop and audio shutdown changes remain included.
+
+## Stop recording update (7.0.3)
+
+Stop shows the current shutdown stage while finishing in the background. After
+completion, click **Save MP4** to save the recording. Audio-device startup and
+shutdown run on their own background thread; callbacks never share a lock with
+device disposal. Slow audio-device cleanup no longer waits indefinitely before
+MP4 finalization. Native capture resources remain owned by their worker until
+cleanup finishes, rather than being freed underneath a driver.
+
+## Feature 07/10-2 — Appearance and recording
+
+- Select a text annotation and click **Text box…** to choose background colour or
+  transparency, along with border appearance. **⋯ → Text box background…** is also
+  available. Backgrounds export with the image and survive duplicate, copy/paste,
+  undo and redo. The chosen appearance becomes the default for new text.
+- The bottom toolbar displays icons only. Tooltips and accessible names identify
+  each tool; keyboard focus indicators remain available.
+- **Mic on** records both the default microphone and speaker/system audio from the
+  default Windows playback endpoint. **Mic off** silences both sources in the MP4.
+  Pause discards queued audio; resume continues on the active recording timeline.
+  Device errors are reported while video and the remaining audio source continue.
+  If changing playback devices during recording, restart the recording.
+- Custom buttons paint their complete background, including rounded corners.
+- The executable, main window and recording window have a ScreenAnote camera/pen
+  icon for Explorer and the Windows taskbar.
+
 ## v6 additions
 
-- **Text box border:** select a text annotation and click **Border…** in its
+- **Text box border:** select a text annotation and click **Text box…** in its
   appearance toolbar. Choose None, Solid, Dashed, Dotted or Rounded, an independent
   border colour, and width from 1–20 original image pixels. Border padding keeps
   text clear of the outline. These settings also become defaults for new text.

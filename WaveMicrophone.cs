@@ -11,7 +11,7 @@ internal sealed class WaveMicrophone:IDisposable
     private readonly Func<bool> paused;
     private volatile bool enabled;
     private string? error;
-    private int generation;
+    private int generation,stopWaited,disposed;
     public bool Enabled{get=>enabled;set{enabled=value;Discard();}}
     public void Discard(){Interlocked.Increment(ref generation);queue.Clear();}
     public string? TakeError()=>Interlocked.Exchange(ref error,null);
@@ -37,8 +37,16 @@ internal sealed class WaveMicrophone:IDisposable
         }
         finally{device?.Dispose();}
     }
-    public void StopCapture(){stop.Cancel();worker.GetAwaiter().GetResult();}
-    public void Dispose(){StopCapture();stop.Dispose();queue.Clear();}
+    public void StopCapture()
+    {
+        stop.Cancel();if(Interlocked.Exchange(ref stopWaited,1)==0&&!worker.Wait(TimeSpan.FromSeconds(3)))
+            Interlocked.Exchange(ref error,"Microphone device cleanup is taking longer; MP4 finalization will continue.");
+    }
+    public void Dispose()
+    {
+        if(Interlocked.Exchange(ref disposed,1)!=0)return;StopCapture();queue.Clear();
+        _=worker.ContinueWith(_=>stop.Dispose(),CancellationToken.None,TaskContinuationOptions.ExecuteSynchronously,TaskScheduler.Default);
+    }
     [StructLayout(LayoutKind.Sequential,Pack=2)]private struct Format
     {
         public ushort Tag,Channels;public uint Rate,BytesPerSecond;public ushort Alignment,Bits,Extra;

@@ -7,16 +7,6 @@
   "targets": {
     ".NETCoreApp,Version=v8.0": {},
     ".NETCoreApp,Version=v8.0/win-x64": {
-      "ScreenAnote/6.0.0": {
-        "dependencies": {
-          "Microsoft.Web.WebView2": "1.0.3537.50",
-          "Microsoft.Web.WebView2.Core": "1.0.3537.50",
-          "Microsoft.Web.WebView2.WinForms": "1.0.3537.50"
-        },
-        "runtime": {
-          "ScreenAnote.dll": {}
-        }
-      },
       "Microsoft.Web.WebView2/1.0.3537.50": {
         "native": {
           "runtimes/win-x64/native/WebView2Loader.dll": {
@@ -39,15 +29,60 @@
             "fileVersion": "1.0.3537.50"
           }
         }
+      },
+      "NAudio.Core/2.2.1": {
+        "runtime": {
+          "NAudio.Core.dll": {
+            "assemblyVersion": "2.2.1.0"
+          }
+        }
+      },
+      "NAudio.Wasapi/2.2.1": {
+        "runtime": {
+          "NAudio.Wasapi.dll": {
+            "assemblyVersion": "2.2.1.0"
+          }
+        }
+      },
+      "NAudio.WinMM/2.2.1": {
+        "runtime": {
+          "NAudio.WinMM.dll": {
+            "assemblyVersion": "2.2.1.0"
+          }
+        }
+      },
+      "NAudio.Asio/2.2.1": {
+        "runtime": {
+          "NAudio.Asio.dll": {
+            "assemblyVersion": "2.2.1.0"
+          }
+        }
+      },
+      "NAudio.Midi/2.2.1": {
+        "runtime": {
+          "NAudio.Midi.dll": {
+            "assemblyVersion": "2.2.1.0"
+          }
+        }
+      },
+      "ScreenAnote/7.0.6": {
+        "dependencies": {
+          "Microsoft.Web.WebView2": "1.0.3537.50",
+          "Microsoft.Web.WebView2.Core": "1.0.3537.50",
+          "Microsoft.Web.WebView2.WinForms": "1.0.3537.50",
+          "NAudio.Core": "2.2.1",
+          "NAudio.Wasapi": "2.2.1",
+          "NAudio.WinMM": "2.2.1",
+          "NAudio.Asio": "2.2.1",
+          "NAudio.Midi": "2.2.1"
+        },
+        "runtime": {
+          "ScreenAnote.dll": {}
+        }
       }
     }
   },
   "libraries": {
-    "ScreenAnote/6.0.0": {
-      "type": "project",
-      "serviceable": false,
-      "sha512": ""
-    },
     "Microsoft.Web.WebView2/1.0.3537.50": {
       "type": "package",
       "serviceable": true,
@@ -62,6 +97,36 @@
     },
     "Microsoft.Web.WebView2.WinForms/1.0.3537.50": {
       "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.Core/2.2.1": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.Wasapi/2.2.1": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.WinMM/2.2.1": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.Asio/2.2.1": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "NAudio.Midi/2.2.1": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ScreenAnote/7.0.6": {
+      "type": "project",
       "serviceable": false,
       "sha512": ""
     }

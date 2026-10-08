@@ -12,11 +12,12 @@ internal sealed class Annotation
     public List<PointF> Points=new();
     public Bitmap? Asset;
     public bool Tint;
+    public Color TextBackground=Color.Transparent;
     public TextBorderStyle BorderStyle;
     public Color BorderColor=Color.RoyalBlue;
     public float BorderWidth=2;
     public float TextPadding=>Kind==EditTool.Text&&BorderStyle!=TextBorderStyle.None?Math.Max(8,BorderWidth+4):0;
-    public Annotation Clone()=>new(){Kind=Kind,Bounds=Bounds,Color=Color,Stroke=Stroke,FontSize=FontSize,Text=Text,Points=new(Points),Asset=Asset,Tint=Tint,BorderStyle=BorderStyle,BorderColor=BorderColor,BorderWidth=BorderWidth};
+    public Annotation Clone()=>new(){Kind=Kind,Bounds=Bounds,Color=Color,Stroke=Stroke,FontSize=FontSize,Text=Text,Points=new(Points),Asset=Asset,Tint=Tint,BorderStyle=BorderStyle,BorderColor=BorderColor,BorderWidth=BorderWidth,TextBackground=TextBackground};
     public void SetTextBorder(TextBorderStyle style,float width,Color color)
     {
         if(Kind!=EditTool.Text)return;
@@ -58,6 +59,7 @@ internal sealed class Annotation
                 using(var format=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center})g.DrawString(Text,font,Brushes.White,Bounds,format);break;
             case EditTool.Text:case EditTool.Sticker:
                 var textBox=Bounds;
+                if(Kind==EditTool.Text && TextBackground.A>0){using var fill=new SolidBrush(TextBackground);if(BorderStyle==TextBorderStyle.Rounded){using var shape=new GraphicsPath();float d=Math.Min(16,Math.Min(Bounds.Width,Bounds.Height));shape.AddArc(Bounds.Left,Bounds.Top,d,d,180,90);shape.AddArc(Bounds.Right-d,Bounds.Top,d,d,270,90);shape.AddArc(Bounds.Right-d,Bounds.Bottom-d,d,d,0,90);shape.AddArc(Bounds.Left,Bounds.Bottom-d,d,d,90,90);shape.CloseFigure();g.FillPath(fill,shape);}else g.FillRectangle(fill,Bounds);}
                 if(Kind==EditTool.Text && BorderStyle!=TextBorderStyle.None)
                 {
                     using var border=new Pen(BorderColor,BorderWidth){DashStyle=BorderStyle==TextBorderStyle.Dashed?DashStyle.Dash:BorderStyle==TextBorderStyle.Dotted?DashStyle.Dot:DashStyle.Solid};

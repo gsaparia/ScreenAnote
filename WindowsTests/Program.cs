@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Drawing;
 using System.Text;
+using System.Windows.Forms;
 using ScreenAnote;
 internal static class Program
 {
@@ -39,6 +40,55 @@ internal static class Program
                 for(int i=0;i<100;i++){Thread.Sleep(20);if(microphone.TakeError() is string error)throw new Exception(error);if(microphone.Read(882).Any(b=>b!=0))sound=true;}
                 if(!sound)throw new Exception("No microphone sound received. Speak, select an input device, and check Windows permissions.");microphone.Enabled=false;if(microphone.Read(100).Any(b=>b!=0))throw new Exception("Mic mute failed");Console.WriteLine("PASS: microphone input and mute.");
             }
+            if(args.Contains("--systemaudio"))
+            {
+                Console.WriteLine("Play speaker audio now: testing loopback capture for two seconds.");using var speaker=new SystemAudio(true,()=>false);bool sound=false;
+                for(int i=0;i<100;i++){Thread.Sleep(20);if(speaker.TakeError() is string error)throw new Exception(error);if(speaker.Read(882).Any(b=>b!=0))sound=true;}
+                if(!sound)throw new Exception("No system audio received. Play sound on the default playback device.");speaker.Enabled=false;if(speaker.Read(100).Any(b=>b!=0))throw new Exception("Speaker mute failed");Console.WriteLine("PASS: system loopback and mute.");
+            }
+            if(args.Contains("--captureframes"))
+            {
+                foreach(var display in Screen.AllScreens)
+                {
+                    var region=new Rectangle(display.Bounds.Location,new Size(Math.Min(1248,display.Bounds.Width),Math.Min(715,display.Bounds.Height)));
+                    using var frame=new Bitmap(region.Width,region.Height,System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                    for(int i=0;i<100;i++)RecordingScreenCapture.CopyFrame(frame,region);
+                    Console.WriteLine("PASS: 100 native capture frames on "+display.DeviceName+" "+region);
+                }
+            }
+            if(args.Contains("--recorderstop"))
+            {
+                foreach(bool audio in new[]{false,true})
+                {
+                    var recorder=new RegionRecorder(new Rectangle(0,0,320,240),false);
+                    try
+                    {
+                        recorder.Ready.WaitAsync(TimeSpan.FromSeconds(10)).GetAwaiter().GetResult();
+                        // Enable from this STA caller to exercise the old UI-thread path.
+                        recorder.MicrophoneEnabled=audio;Thread.Sleep(700);recorder.TogglePause();Thread.Sleep(100);recorder.TogglePause();Thread.Sleep(300);
+                        recorder.StopAsync().WaitAsync(TimeSpan.FromSeconds(15)).GetAwaiter().GetResult();
+                        if(!File.Exists(recorder.FilePath)||new FileInfo(recorder.FilePath).Length<1000)throw new Exception("Recording did not finalize");
+                        Console.WriteLine("PASS: live recorder Stop/pause/resume with audio "+(audio?"on":"off"));
+                    }
+                    finally{if(recorder.Completion.IsCompleted)recorder.Dispose();}
+                }
+            }
+            using(var parent=new Panel{BackColor=Color.FromArgb(242,245,250),Size=new Size(80,60)})
+            using(var button=new ModernButton{Text="",Symbol="pen",Size=new Size(60,40)})
+            using(var rendered=new Bitmap(60,40))
+            {
+                parent.Controls.Add(button);button.DrawToBitmap(rendered,new Rectangle(0,0,60,40));
+                if(rendered.GetPixel(0,0).ToArgb()!=parent.BackColor.ToArgb())throw new Exception("Button corner background artifact");
+            }
+            using(var rendered=new Bitmap(100,60))
+            {
+                var text=new Annotation{Kind=EditTool.Text,Text="Text",Bounds=new RectangleF(10,10,80,40),TextBackground=Color.Yellow};
+                using(var graphics=Graphics.FromImage(rendered)){graphics.Clear(Color.Transparent);text.Draw(graphics);}
+                if(rendered.GetPixel(88,48).ToArgb()!=Color.Yellow.ToArgb())throw new Exception("Text background rendering failed");
+                text.TextBackground=Color.Transparent;using(var graphics=Graphics.FromImage(rendered)){graphics.Clear(Color.Transparent);text.Draw(graphics);}
+                if(rendered.GetPixel(88,48).A!=0)throw new Exception("Transparent background rendering failed");
+            }
+            Console.WriteLine("PASS: button corner paint and solid/transparent text background rendering.");
             using var image=new Bitmap(16,16);image.SetPixel(4,4,Color.FromArgb(128,200,40,10));
             var item=new Annotation{Kind=EditTool.ImageSticker,Bounds=new RectangleF(1,2,16,16),Asset=image};var restored=AnnotationTransfer.Deserialize(AnnotationTransfer.Serialize(item));
             using var restoredImage=restored.Asset;if(restoredImage==null||restoredImage.GetPixel(4,4).ToArgb()!=image.GetPixel(4,4).ToArgb())throw new Exception("PNG asset clipboard serialization failed");

@@ -1,3 +1,98 @@
+## V6 scrolling workflow restoration (7.0.6)
+
+- ScrollingCapture.cs and Capture.cs match the original V6 ZIP byte for byte.
+- MainForm.DoCapture matches the original V6 method exactly.
+- Both scrolling menu options select the original scroll mode.
+- Removed BrowserCapture.cs and its browser-window selection wrapper.
+- Application compiled without errors; Windows runtime execution remains unverified.
+- Earlier recording updates remain included.
+
+## Native recording bitmap update (7.0.5)
+
+The user's error code 6 and region X=-1909, Y=230, Width=1248, Height=715
+identify an invalid handle during a capture on a left-hand monitor. The initial
+frame succeeded; the precise native handle failure remains unconfirmed.
+
+Replaced the Graphics.GetHdc destination with CreateCompatibleDC/CreateDIBSection,
+then copy completed native pixels into the managed bitmap. Preserve negative
+screen coordinates and report each native stage separately. Application and
+Windows smoke-test source compile without errors. Native Windows testing has not
+been performed here.
+
+On Windows: dotnet run --project WindowsTests/WindowsSmoke.csproj -- --captureframes
+captures 100 frames on every monitor, including monitors with negative coordinates.
+Then run --recorderstop and verify recording manually on the affected monitor.
+
+## Recording startup capture update (7.0.4)
+
+The reported exception at RegionRecorder.Record line 59 identifies the
+Graphics.CopyFromScreen call. Replaced recording screen capture with explicit
+per-frame desktop DC acquisition, BitBlt and same-thread handle release.
+Startup readiness now follows the first successful capture. Application and
+Windows smoke-test source compiled without errors. Native Windows capture has
+not been run here; verify Start/Stop on the affected Windows machine, including
+secondary-monitor regions. Existing --recorderstop integration checks cover the
+new capture path when run on Windows.
+
+## Stop recording update (7.0.3)
+
+- Application and Windows smoke-test source compiled without errors.
+- Portable geometry, clipboard, timing and audio mixing tests passed.
+- New fake-device shutdown regressions passed for ordinary capture and startup
+  failure while an in-flight callback runs during disposal; repeated stop/dispose
+  checks also passed.
+- Real Windows audio drivers and Media Foundation finalization were not run here.
+  The reported freeze has not been reproduced on the user's Windows environment.
+
+Windows check: record with Mic off, then with Mic on; pause/resume and Stop. Check
+shutdown stages, then click Save MP4 and verify video plus microphone/speaker audio.
+Optional integration test: dotnet run --project WindowsTests/WindowsSmoke.csproj
+-- --recorderstop. It fails if the recorder cannot stop within 15 seconds.
+
+## Browser scrolling update (7.0.2)
+
+Browser capture now delegates directly to the original ScrollingCapture.Run engine.
+It starts at the current browser position and does not restore the page afterward.
+Compiled the application without errors. On Windows, verify that browser capture
+starts at the selected position and finishes without any return scrolling.
+The earlier restoration checks below apply only to the superseded 7.0.0 build.
+
+## V7 source build correction (7.0.1)
+
+Reproduced missing Path, File, MemoryStream and IOException compile errors using
+the SDK's actual implicit imports (WPF removes System.IO). Added GlobalUsings.cs
+with an explicit System.IO import and compiled again using those same imports.
+The corrected source compiles without errors. Full MSBuild/Visual Studio execution
+and Windows runtime checks remain unavailable in this environment.
+
+# V7 validation — Features 07/10-1 and 07/10-2
+
+Completed in this environment:
+- Compiled the complete application with .NET 8 C# compiler and Windows Desktop
+  reference assemblies: no errors. WebView2 framework compatibility warnings only.
+- Generated a Windows x64 apphost carrying the embedded icon, version and manifest.
+- Compiled the Windows smoke-test project: no errors.
+- Ran the existing geometry/clipboard/timing suite plus new background round-trip,
+  legacy transparency and PCM mixing/saturation checks: all passed.
+
+The included executable has not been launched on Windows here. Browser capture,
+real audio devices, native MP4 encoding and taskbar visuals need Windows checks:
+
+1. Run Start.cmd and verify the taskbar icon and button corners at 100%/150% DPI.
+2. Add text; use Text box… to apply a solid background, then transparency. Copy,
+   paste, duplicate, undo and save PNG; check that the appearance is preserved.
+3. Confirm the bottom toolbar has icons only and readable tooltips.
+4. In Chrome, Edge and Firefox, start halfway down a static long page. Use Full
+   webpage from Browser; select only scrolling content. Check top/bottom content,
+   seams and restored scroll position. Check the reported approximate-restoration
+   fallback if the browser does not expose UI Automation scrolling.
+5. Repeat with Escape, a short page, nested scroller and lazy-loading content.
+6. Play sound on the default playback device while speaking; record with Mic on.
+   Toggle Mic off/on, pause/resume and save. Confirm both sound sources, silence
+   while muted and no audio from the paused interval.
+7. Optional native checks: dotnet run --project WindowsTests/WindowsSmoke.csproj
+   -- --microphone --systemaudio (speak and play speaker audio when prompted).
+
 # Validation record
 
 Performed in the Linux delivery environment:

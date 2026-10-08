@@ -24,6 +24,12 @@ internal sealed class ImageEditor:Control
     private Color ink=Color.Red;
     private int stroke=4,fontSize=24,counterSize=42;
     private TextBorderStyle borderStyle;private Color borderColor=Color.RoyalBlue;private float borderWidth=2;
+    private Color textBackground=Color.Transparent;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)] public Color DefaultTextBackground=>textBackground;
+    public void SetTextBackground(Color color)
+    {
+        textBackground=color;if(selection.Any(a=>a.Kind==EditTool.Text)){Snapshot();foreach(var a in selection.Where(a=>a.Kind==EditTool.Text))a.TextBackground=color;Finish();SelectionChanged?.Invoke(this,EventArgs.Empty);}
+    }
     private Bitmap? import;
     private PointF start;
     private Point lastScreen;
@@ -137,7 +143,7 @@ internal sealed class ImageEditor:Control
         if(Tool is EditTool.Text or EditTool.Sticker or EditTool.ImageSticker or EditTool.Counter)
         {
             if(Tool==EditTool.Counter){draft.Text=counter.Next.ToString();draft.Bounds=new(start,new SizeF(counterSize,counterSize));draft.FontSize=24;Snapshot();counter.Take();annotations.Add(draft);selected=draft;draft=null;SelectionChanged?.Invoke(this,EventArgs.Empty);Finish();return;}
-            if(Tool==EditTool.Text){var value=RequestText?.Invoke(null);if(string.IsNullOrEmpty(value)){draft=null;return;}draft.Text=value;MeasureText(draft);draft.SetTextBorder(borderStyle,borderWidth,borderColor);}
+            if(Tool==EditTool.Text){var value=RequestText?.Invoke(null);if(string.IsNullOrEmpty(value)){draft=null;return;}draft.Text=value;draft.TextBackground=textBackground;MeasureText(draft);draft.SetTextBorder(borderStyle,borderWidth,borderColor);}
             else if(Tool==EditTool.Sticker){draft.Text=Sticker;MeasureText(draft);}
             else{if(import==null){draft=null;return;}draft.Asset=import;float factor=Math.Min(1,128f/Math.Max(import.Width,import.Height));draft.Bounds=new(start,new SizeF(import.Width*factor,import.Height*factor));}
             Snapshot();annotations.Add(draft);selected=draft;draft=null;Tool=EditTool.Select;SelectionChanged?.Invoke(this,EventArgs.Empty);Finish();return;

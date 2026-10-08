@@ -105,3 +105,46 @@ Console.WriteLine("PASS: 10-minute PCM clock, ordered audio chunks, underflow si
 
 var oldJson=System.Text.Json.Nodes.JsonNode.Parse(AnnotationTransfer.Serialize(text))!.AsObject();oldJson.Remove("BorderStyle");oldJson.Remove("BorderArgb");oldJson.Remove("BorderWidth");var oldCopy=AnnotationTransfer.Deserialize(oldJson.ToJsonString());if(oldCopy.BorderStyle!=TextBorderStyle.None||oldCopy.BorderWidth!=2)throw new Exception("Legacy clipboard defaults not preserved");
 Console.WriteLine("PASS: v5 clipboard payloads without border fields retain compatible defaults.");
+
+text.TextBackground=Color.FromArgb(180,255,220,100);
+var backgroundCopy=AnnotationTransfer.Deserialize(AnnotationTransfer.Serialize(text));
+if(backgroundCopy.TextBackground.ToArgb()!=text.TextBackground.ToArgb()||text.Clone().TextBackground.ToArgb()!=text.TextBackground.ToArgb())throw new Exception("Text background not preserved");
+oldJson=System.Text.Json.Nodes.JsonNode.Parse(AnnotationTransfer.Serialize(text))!.AsObject();oldJson.Remove("BackgroundArgb");
+if(AnnotationTransfer.Deserialize(oldJson.ToJsonString()).TextBackground.A!=0)throw new Exception("Legacy background must be transparent");
+byte[] Pcm(params short[] values){var bytes=new byte[values.Length*2];for(int i=0;i<values.Length;i++)System.Buffers.Binary.BinaryPrimitives.WriteInt16LittleEndian(bytes.AsSpan(i*2,2),values[i]);return bytes;}
+var mixed=AudioMix.Mix(Pcm(20000,-20000,1234,0),Pcm(20000,-20000,-1234,7000));
+if(!mixed.SequenceEqual(Pcm(short.MaxValue,short.MinValue,0,7000)))throw new Exception("Audio mix clipping, cancellation or pass-through failed");
+Console.WriteLine("PASS: text backgrounds survive clipboard/clone, legacy transparency, and microphone/speaker PCM mixing saturates without wraparound.");
+
+// Startup failure cleanup must not hold the callback lock while disposing.
+foreach(bool failStart in new[]{false,true})
+{
+ var device=new FakeAudioCapture(failStart);
+ using var source=new SystemAudio(true,()=>false,()=>device);
+ if(!device.Started.Wait(TimeSpan.FromSeconds(2)))throw new Exception("Audio owner did not start");
+ source.StopCapture();
+ if(!device.Disposed.Wait(TimeSpan.FromSeconds(2))||device.CallbackBlocked)throw new Exception("Audio shutdown deadlocked its capture callback");
+}
+// Repeated stop/dispose with no audio device must be safe and quick.
+var mutedSource=new SystemAudio(false,()=>false,()=>throw new Exception("Muted audio opened a device"));
+mutedSource.StopCapture();mutedSource.StopCapture();mutedSource.Dispose();mutedSource.Dispose();
+Console.WriteLine("PASS: speaker shutdown/startup failure allows capture callbacks during disposal; repeated stop/dispose is safe.");
+
+sealed class FakeAudioCapture : NAudio.Wave.IWaveIn
+{
+ private readonly bool failStart;
+ public readonly ManualResetEventSlim Started=new(),Disposed=new();
+ public bool CallbackBlocked;
+ public FakeAudioCapture(bool failStart)=>this.failStart=failStart;
+ public NAudio.Wave.WaveFormat WaveFormat{get;set;}=new(44100,16,1);
+ public event EventHandler<NAudio.Wave.WaveInEventArgs>? DataAvailable;
+ public event EventHandler<NAudio.Wave.StoppedEventArgs>? RecordingStopped;
+ public void StartRecording(){Started.Set();if(failStart)throw new InvalidOperationException("Simulated device failure");}
+ public void StopRecording()=>RecordingStopped?.Invoke(this,new NAudio.Wave.StoppedEventArgs());
+ public void Dispose()
+ {
+  // A device may wait for an in-flight callback before releasing its buffers.
+  var callback=Task.Run(()=>DataAvailable?.Invoke(this,new NAudio.Wave.WaveInEventArgs(new byte[128],128)));
+  CallbackBlocked=!callback.Wait(TimeSpan.FromSeconds(1));Disposed.Set();
+ }
+}
