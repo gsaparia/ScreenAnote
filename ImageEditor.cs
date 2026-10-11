@@ -24,6 +24,13 @@ internal sealed class ImageEditor:Control
     private Color ink=Color.Red;
     private int stroke=4,fontSize=24,counterSize=42;
     private TextBorderStyle borderStyle;private Color borderColor=Color.RoyalBlue;private float borderWidth=2;
+    private Color shapeBackground=Color.Transparent;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public Color DefaultShapeBackground=>shapeBackground;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public bool SelectionHasShapes=>selection.Any(a=>a.Kind is EditTool.Rectangle or EditTool.Ellipse);
+    public void SetShapeBackground(Color value)
+    {
+        shapeBackground=value;if(SelectionHasShapes){Snapshot();foreach(var a in selection.Where(a=>a.Kind is EditTool.Rectangle or EditTool.Ellipse))a.ShapeBackground=value;Finish();SelectionChanged?.Invoke(this,EventArgs.Empty);}
+    }
     private Color textBackground=Color.Transparent;
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)] public Color DefaultTextBackground=>textBackground;
     public void SetTextBackground(Color color)
@@ -70,6 +77,17 @@ internal sealed class ImageEditor:Control
         if(background==null)return;var pointer=new Point(Width/2,Height/2);var anchor=ToImage(pointer);zoom=Math.Clamp(zoom*multiplier,Math.Min(.02f,Fit)/Fit,32/Fit);pan=ShapeGeometry.ZoomPan(pointer,anchor,DisplayScale,View.Location,pan);Finish(false);
     }
     public event EventHandler? Changed,SelectionChanged;
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public long ContentVersion{get;private set;}
+    public string[] BucketAnnotations()=>annotations.Select(AnnotationTransfer.Serialize).ToArray();
+    public long BucketAssetBytes()=>annotations.Sum(a=>a.Asset==null?0L:(long)a.Asset.Width*a.Asset.Height*4);
+    public void LoadBucket(Bitmap image,string[] records,int nextCounter)
+    {
+        if(nextCounter<1)throw new InvalidDataException("Invalid bucket counter.");
+        var loaded=records.Length==0?new List<Annotation>():AnnotationTransfer.DeserializeMany(System.Text.Json.JsonSerializer.Serialize(records));
+        var incoming=loaded.Where(a=>a.Asset!=null).Select(a=>a.Asset!).ToList();
+        if(incoming.Sum(a=>(long)a.Width*a.Height*4)>32_000_000){foreach(var asset in incoming)asset.Dispose();throw new InvalidDataException("Bucket stickers exceed document asset limit.");}
+        LoadImage(image);annotations=loaded;assets.AddRange(incoming);counter.Reset(nextCounter);selection.Clear();previewDirty=true;Finish();SelectionChanged?.Invoke(this,EventArgs.Empty);
+    }
     public ImageEditor(){DoubleBuffered=true;BackColor=Color.FromArgb(39,43,50);Dock=DockStyle.Fill;TabStop=true;SetStyle(ControlStyles.Selectable,true);}
     public static Rectangle Box(Point a,Point b)=>Rectangle.Round(ShapeGeometry.Box(a,b));
     private float Fit=>background==null?1:Math.Max(.001f,Math.Min((float)Math.Max(1,ClientSize.Width-48)/background.Width,(float)Math.Max(1,ClientSize.Height-48)/background.Height));
@@ -78,12 +96,12 @@ internal sealed class ImageEditor:Control
     private PointF ToImage(Point p)=>new((p.X-View.X)/DisplayScale,(p.Y-View.Y)/DisplayScale);
     private PointF Clamped(Point p){var q=ToImage(p);return new(Math.Clamp(q.X,0,background!.Width),Math.Clamp(q.Y,0,background.Height));}
     public void FitView(){zoom=1;pan=PointF.Empty;Finish(false);}
-    public void LoadImage(Bitmap image){SetSpacePan(false);counter.Reset();pasteCount=0;ClearHistory();background?.Dispose();annotations.Clear();selected=null;import=null;foreach(var a in assets)a.Dispose();assets.Clear();background=image;previewDirty=true;FitView();SelectionChanged?.Invoke(this,EventArgs.Empty);}
+    public void LoadImage(Bitmap image){ContentVersion++;selection.Clear();SetSpacePan(false);counter.Reset();pasteCount=0;ClearHistory();background?.Dispose();annotations.Clear();selected=null;import=null;foreach(var a in assets)a.Dispose();assets.Clear();background=image;previewDirty=true;FitView();SelectionChanged?.Invoke(this,EventArgs.Empty);}
     private void ClearRedo(){foreach(var s in redo)s.Dispose();redo.Clear();}
     private void ClearHistory(){foreach(var s in undo)s.Dispose();undo.Clear();ClearRedo();}
     private State Current()=>new((Bitmap)background!.Clone(),annotations.Select(a=>a.Clone()).ToList(),selection.Select(a=>annotations.IndexOf(a)).ToArray(),counter.Next);
-    private void Snapshot(){if(background==null)return;undo.AddLast(Current());ClearRedo();long bytes=undo.Sum(s=>(long)s.Background.Width*s.Background.Height*4);while(bytes>Budget && undo.Count>1){bytes-=(long)undo.First!.Value.Background.Width*undo.First.Value.Background.Height*4;undo.First.Value.Dispose();undo.RemoveFirst();}}
-    private void Restore(State state){background?.Dispose();background=state.Background;annotations=state.Annotations;counter.Reset(state.Counter);selection.Clear();selection.AddRange(state.Selected.Where(i=>i>=0&&i<annotations.Count).Select(i=>annotations[i]));SelectionChanged?.Invoke(this,EventArgs.Empty);Finish();}
+    private void Snapshot(){if(background==null)return;ContentVersion++;undo.AddLast(Current());ClearRedo();long bytes=undo.Sum(s=>(long)s.Background.Width*s.Background.Height*4);while(bytes>Budget && undo.Count>1){bytes-=(long)undo.First!.Value.Background.Width*undo.First.Value.Background.Height*4;undo.First.Value.Dispose();undo.RemoveFirst();}}
+    private void Restore(State state){ContentVersion++;background?.Dispose();background=state.Background;annotations=state.Annotations;counter.Reset(state.Counter);selection.Clear();selection.AddRange(state.Selected.Where(i=>i>=0&&i<annotations.Count).Select(i=>annotations[i]));SelectionChanged?.Invoke(this,EventArgs.Empty);Finish();}
     public void Undo(){if(background==null || undo.Count==0)return;redo.Push(Current());var state=undo.Last!.Value;undo.RemoveLast();Restore(state);}
     public void Redo(){if(background==null || redo.Count==0)return;undo.AddLast(Current());Restore(redo.Pop());}
     private void Select(Annotation? value){selected=value;SelectionChanged?.Invoke(this,EventArgs.Empty);Finish(false);}
@@ -139,7 +157,7 @@ internal sealed class ImageEditor:Control
             moving=true;originals=selection.Select(a=>a.Clone()).ToList();originalGroup=SelectionBounds;start=p;duplicatePending=ctrl;Capture=true;return;
         }
         if(!View.Contains(e.Location))return;Select(null);
-        draft=new Annotation{Kind=Tool,Color=Tool==EditTool.Redact?Color.Black:ink,Stroke=stroke,FontSize=fontSize,Bounds=new RectangleF(start,new SizeF(1,1))};
+        draft=new Annotation{Kind=Tool,Color=Tool==EditTool.Redact?Color.Black:ink,Stroke=stroke,FontSize=fontSize,Bounds=new RectangleF(start,new SizeF(1,1)),ShapeBackground=Tool is EditTool.Rectangle or EditTool.Ellipse?shapeBackground:Color.Transparent};
         if(Tool is EditTool.Text or EditTool.Sticker or EditTool.ImageSticker or EditTool.Counter)
         {
             if(Tool==EditTool.Counter){draft.Text=counter.Next.ToString();draft.Bounds=new(start,new SizeF(counterSize,counterSize));draft.FontSize=24;Snapshot();counter.Take();annotations.Add(draft);selected=draft;draft=null;SelectionChanged?.Invoke(this,EventArgs.Empty);Finish();return;}

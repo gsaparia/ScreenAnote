@@ -13,11 +13,12 @@ internal sealed class Annotation
     public Bitmap? Asset;
     public bool Tint;
     public Color TextBackground=Color.Transparent;
+    public Color ShapeBackground=Color.Transparent;
     public TextBorderStyle BorderStyle;
     public Color BorderColor=Color.RoyalBlue;
     public float BorderWidth=2;
     public float TextPadding=>Kind==EditTool.Text&&BorderStyle!=TextBorderStyle.None?Math.Max(8,BorderWidth+4):0;
-    public Annotation Clone()=>new(){Kind=Kind,Bounds=Bounds,Color=Color,Stroke=Stroke,FontSize=FontSize,Text=Text,Points=new(Points),Asset=Asset,Tint=Tint,BorderStyle=BorderStyle,BorderColor=BorderColor,BorderWidth=BorderWidth,TextBackground=TextBackground};
+    public Annotation Clone()=>new(){Kind=Kind,Bounds=Bounds,Color=Color,Stroke=Stroke,FontSize=FontSize,Text=Text,Points=new(Points),Asset=Asset,Tint=Tint,BorderStyle=BorderStyle,BorderColor=BorderColor,BorderWidth=BorderWidth,TextBackground=TextBackground,ShapeBackground=ShapeBackground};
     public void SetTextBorder(TextBorderStyle style,float width,Color color)
     {
         if(Kind!=EditTool.Text)return;
@@ -48,8 +49,8 @@ internal sealed class Annotation
         {
             case EditTool.Pen:if(Points.Count>1)g.DrawLines(pen,Points.ToArray());else if(Points.Count==1){using var dot=new SolidBrush(Color);g.FillEllipse(dot,Points[0].X-Stroke/2,Points[0].Y-Stroke/2,Stroke,Stroke);}break;
             case EditTool.Arrow:if(Points.Count>=2){using var cap=new AdjustableArrowCap(4,5,true);pen.CustomEndCap=cap;g.DrawLine(pen,Points[0],Points[^1]);}break;
-            case EditTool.Rectangle:g.DrawRectangle(pen,Bounds.X,Bounds.Y,Bounds.Width,Bounds.Height);break;
-            case EditTool.Ellipse:g.DrawEllipse(pen,Bounds);break;
+            case EditTool.Rectangle:if(ShapeBackground.A>0){using var fill=new SolidBrush(ShapeBackground);g.FillRectangle(fill,Bounds);}g.DrawRectangle(pen,Bounds.X,Bounds.Y,Bounds.Width,Bounds.Height);break;
+            case EditTool.Ellipse:if(ShapeBackground.A>0){using var fill=new SolidBrush(ShapeBackground);g.FillEllipse(fill,Bounds);}g.DrawEllipse(pen,Bounds);break;
             case EditTool.Highlight:using(var brush=new SolidBrush(System.Drawing.Color.FromArgb(85,Color)))g.FillRectangle(brush,Bounds);break;
             case EditTool.Redact:using(var brush=new SolidBrush(Color))g.FillRectangle(brush,Bounds);break;
             case EditTool.Counter:

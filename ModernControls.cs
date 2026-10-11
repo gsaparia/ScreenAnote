@@ -32,6 +32,7 @@ internal sealed class ModernButton:Button
     private Bitmap? thumbnail;
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public Image? Artwork{get=>artwork;set{if(ReferenceEquals(artwork,value))return;artwork=value;thumbnail?.Dispose();thumbnail=null;Invalidate();}}
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public string Symbol{get;set;}="";
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]public string Badge{get;set;}="";
     public ModernButton(){FlatStyle=FlatStyle.Flat;FlatAppearance.BorderSize=0;BackColor=Color.White;ForeColor=Theme.Ink;Cursor=Cursors.Hand;TabStop=true;SetStyle(ControlStyles.UserPaint|ControlStyles.AllPaintingInWmPaint|ControlStyles.OptimizedDoubleBuffer|ControlStyles.SupportsTransparentBackColor,true);}
     protected override void OnPaintBackground(PaintEventArgs e)
     {
@@ -55,6 +56,7 @@ internal sealed class ModernButton:Button
         if(Symbol.Length>0){var icon=new RectangleF(Vertical || Text.Length==0?(Width-24*dpi)/2:10*dpi,Vertical && Text.Length>0?9*dpi:(Height-24*dpi)/2,24*dpi,24*dpi);DrawIcon(g,icon,Symbol,color);}
         var text=Vertical?new Rectangle(0,Height-(int)(24*dpi),Width,(int)(21*dpi)):new Rectangle(Symbol.Length>0?(int)(40*dpi):5,0,Width-(Symbol.Length>0?(int)(45*dpi):10),Height);
         if(Text.Length>0)TextRenderer.DrawText(g,Text,Font,text,color,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis);
+        if(Badge.Length>0){var badge=new Rectangle(Width-30,3,28,19);using var badgeBrush=new SolidBrush(Theme.Accent);g.FillEllipse(badgeBrush,badge);using var badgeFont=new Font("Segoe UI",8,FontStyle.Bold);TextRenderer.DrawText(g,Badge,badgeFont,badge,Color.White,TextFormatFlags.HorizontalCenter|TextFormatFlags.VerticalCenter|TextFormatFlags.EndEllipsis);}
         if(Focused){using var pen=new Pen(Theme.Accent){DashStyle=DashStyle.Dot};g.DrawRectangle(pen,3,3,Width-7,Height-7);}
     }
     private static void DrawIcon(Graphics g,RectangleF r,string symbol,Color color)
@@ -64,6 +66,7 @@ internal sealed class ModernButton:Button
         {
             case "mic":case "mic-off":g.DrawArc(pen,8,2,8,13,180,180);g.DrawArc(pen,8,2,8,13,0,180);g.DrawArc(pen,5,6,14,13,0,180);g.DrawLine(pen,12,19,12,23);g.DrawLine(pen,8,23,16,23);if(symbol=="mic-off")g.DrawLine(pen,3,3,21,21);break;
             case "video":g.DrawRectangle(pen,2,6,13,13);g.DrawPolygon(pen,[new PointF(15,10),new(22,6),new(22,19),new(15,15)]);break;
+            case "bucket":g.DrawArc(pen,5,1,14,14,180,180);g.DrawLine(pen,3,8,21,8);g.DrawPolygon(pen,[new PointF(4,8),new(7,22),new(17,22),new(20,8)]);break;
             case "select":g.DrawPolygon(pen,[new PointF(5,3),new(5,20),new(10,15),new(14,22),new(17,20),new(13,13),new(21,13)]);break;
             case "pen":g.DrawLines(pen,[new PointF(4,20),new(7,12),new(17,3),new(22,8),new(12,18),new(4,20)]);g.DrawLine(pen,15,5,20,10);break;
             case "shape":g.DrawRectangle(pen,4,4,16,16);break;

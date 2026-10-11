@@ -80,3 +80,22 @@ respecting its hotspot and virtual-desktop coordinates. Cache only the current
 cursor shape; dispose owned copies and temporary icon bitmaps safely. Cursor
 lookup failures skip the overlay without aborting screen capture. Preserve audio
 controls, FPS, fragmented MP4 and restored V6 scrolling code.
+
+## Persistent capture bucket (7.0.11)
+
+Add top-bar Add to bucket / Update bucket item, counted bottom bucket icon, and
+thumbnail list with open, rename, delete and persistent Undo delete. Store the
+original image, serialized editable annotations (including embedded stickers),
+and counter continuation in transactional revisions. Save PNGs/data off the UI
+thread with a progress dialog. Guard image replacement/closing with Save to
+bucket / Discard / Cancel. Track document revisions separately from view changes.
+Preserve restored V6 scrolling engine and all recording features.
+
+## Portable bucket archives and shape fill (7.0.12)
+
+Add Save bucket / Open bucket to the bucket window. Archive all saved captures
+and editable work into one portable .screenanote-bucket file; imports add new
+copies without replacing existing items. Stage imports before publishing and
+write exports through a temporary file. Add independent rectangle/ellipse fill
+colour, opacity and no-fill controls; preserve fill in clone, clipboard, undo,
+rendering and bucket payloads with backward-compatible transparent defaults.

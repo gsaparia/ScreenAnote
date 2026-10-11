@@ -3,6 +3,11 @@ namespace ScreenAnote;
 internal sealed class MainForm:Form
 {
     private readonly ImageEditor editor=new();
+    private readonly CaptureBucket bucket=new();
+    private Guid? activeBucket;
+    private long bucketSavedVersion=-1;
+    private ModernButton? bucketButton,addBucketButton,updateBucketButton;
+    private readonly Label bucketActive=new(){AutoSize=false,Width=390,Height=38,TextAlign=ContentAlignment.MiddleLeft,ForeColor=Theme.Muted};
     private readonly Panel workspace=new(){Dock=DockStyle.Fill,BackColor=Theme.Surface};
     private readonly RoundedCard palette=new(){Height=86},context=new(){Height=58},zoomCard=new(){Width=232,Height=48},drawer=new(){Width=266,Height=330,Visible=false};
     private readonly Label status=new(){AutoSize=false,ForeColor=Theme.Muted,BackColor=Theme.Surface,Text="Capture a screen or open an image to begin.",TextAlign=ContentAlignment.MiddleRight};
@@ -14,6 +19,7 @@ internal sealed class MainForm:Form
     private readonly ModernButton customColour=new(){Text="Colour",Width=64,Height=34};
     private readonly NumericUpDown counterDiameter=new(){Minimum=12,Maximum=400,Value=42,Width=55};
     private readonly Label counterSizeLabel=new(){Text="Size",AutoSize=true,Padding=new Padding(0,7,0,0)};
+    private readonly ModernButton shapeFillButton=new(){Text="Fill…",Width=60,Height=28};
     private readonly ModernButton borderButton=new(){Text="Text box…",Width=82,Height=28};
     private readonly ContextMenuStrip objectMenu=new();
     private readonly List<(ModernButton Button,EditTool Tool)> toolButtons=new();
@@ -42,7 +48,7 @@ internal sealed class MainForm:Form
         editor.SendToBack();workspace.Resize+=(_,_)=>Arrange();
         editor.RequestText=initial=>Prompt("Annotation text",initial);
         editor.SelectionChanged+=(_,_)=>SyncSelection();
-        editor.Changed+=(_,_)=>{zoomLabel.Text=$"{editor.ZoomPercent:0}%";status.Text=editor.Image==null?"Ctrl+O open  ·  New capture to begin":$"{editor.Image.Width} × {editor.Image.Height} px  ·  Ctrl+wheel zoom  ·  Hold Space to pan";if(!editor.GestureActive){UpdateTools();PlaceContext();}};
+        editor.Changed+=(_,_)=>{zoomLabel.Text=$"{editor.ZoomPercent:0}%";status.Text=editor.Image==null?"Ctrl+O open  ·  New capture to begin":$"{editor.Image.Width} × {editor.Image.Height} px  ·  Ctrl+wheel zoom  ·  Hold Space to pan";if(!editor.GestureActive){UpdateTools();PlaceContext();UpdateBucketControls();}};
         bool EntryFocused()=>ActiveControl is TextBoxBase or NumericUpDown or ComboBox;
         KeyDown+=(_,e)=>{
             if(e.KeyCode==Keys.Space && !EntryFocused()){editor.SetSpacePan(true);e.Handled=true;return;}
@@ -54,8 +60,8 @@ internal sealed class MainForm:Form
         KeyPress+=(_,e)=>{if(e.KeyChar==' ' && !EntryFocused())e.Handled=true;};
         KeyUp+=(_,e)=>{if(e.KeyCode==Keys.Space){editor.SetSpacePan(false);e.Handled=true;}};
         Deactivate+=(_,_)=>editor.SetSpacePan(false);
-        FormClosing+=(_,e)=>{if(editor.Image!=null && MessageBox.Show(this,"Close ScreenAnote? Save or copy your screenshot first if needed.","Close",MessageBoxButtons.OKCancel)==DialogResult.Cancel)e.Cancel=true;};
-        Shown+=(_,_)=>Arrange();
+        FormClosing+=(_,e)=>{try{if(!ConfirmReplace())e.Cancel=true;}catch(Exception ex){e.Cancel=true;MessageBox.Show(this,ex.Message,"Capture bucket");}};
+        Shown+=(_,_)=>{Arrange();Safe(RefreshBucketCount);UpdateBucketControls();};
     }
     private ModernButton Button(string text,string symbol,int width,Action action,bool vertical=false,bool primary=false)
     {
@@ -64,7 +70,7 @@ internal sealed class MainForm:Form
     private void Hint(Control c,string text){tips.SetToolTip(c,text);c.AccessibleDescription=text;}
     private void BuildHeader()
     {
-        var header=new Panel{Dock=DockStyle.Top,Height=68,BackColor=Color.FromArgb(245,248,253),Padding=new Padding(20,12,12,10)};
+        var header=new Panel{Dock=DockStyle.Top,Height=112,BackColor=Color.FromArgb(245,248,253),Padding=new Padding(20,12,12,10)};
         var brandPanel=new Panel{Dock=DockStyle.Left,Width=200};
         var brandIcon=Button("","capture",34,()=>{});brandIcon.Primary=true;brandIcon.Height=34;brandIcon.Location=new Point(0,4);
         var brand=new Label{Text="ScreenAnote",Font=new Font("Segoe UI",12,FontStyle.Bold),ForeColor=Theme.Ink,Location=new Point(46,3),Size=new Size(154,38),TextAlign=ContentAlignment.MiddleLeft};
@@ -77,7 +83,10 @@ internal sealed class MainForm:Form
         commands.Controls.Add(Button("Record","video",96,()=>_ = RecordVideo()));
         var save=Button("Save","save",96,Save,primary:true);commands.Controls.Add(save);var copy=Button("Copy","copy",96,Copy);copy.Outline=true;commands.Controls.Add(copy);
         commands.Controls.Add(Button("−","",38,()=>WindowState=FormWindowState.Minimized));commands.Controls.Add(Button("□","",38,ToggleMaximize));commands.Controls.Add(Button("×","",38,Close));
-        header.Controls.Add(brandPanel);header.Controls.Add(commands);Controls.Add(header);
+        var bucketCommands=new FlowLayoutPanel{Dock=DockStyle.Bottom,Height=42,WrapContents=false};
+        addBucketButton=Button("Add to bucket","bucket",146,()=>SaveBucket(false));updateBucketButton=Button("Update bucket item","save",177,()=>SaveBucket(true));
+        bucketCommands.Controls.Add(addBucketButton);bucketCommands.Controls.Add(updateBucketButton);bucketCommands.Controls.Add(bucketActive);
+        header.Controls.Add(brandPanel);header.Controls.Add(commands);header.Controls.Add(bucketCommands);Controls.Add(header);
         async Task Run(Func<Task> action){try{await action();}catch(Exception ex){MessageBox.Show(this,ex.Message,"ScreenAnote",MessageBoxButtons.OK,MessageBoxIcon.Error);}}
         void CaptureItem(string text,string mode){captureMenu.Items.Add(text,null,async(_,_)=>await Run(()=>DoCapture(mode)));}
         CaptureItem("Selected region","region");CaptureItem("Window","window");CaptureItem("Full screen (all monitors)","full");CaptureItem("Scrolling browser area","scroll");CaptureItem("Full webpage from Browser","scroll");
@@ -111,6 +120,7 @@ internal sealed class MainForm:Form
     private void BuildPalette()
     {
         palette.Width=790;palette.Padding=new Padding(11);var row=new FlowLayoutPanel{Dock=DockStyle.Fill,WrapContents=false,AutoScroll=true,Padding=Padding.Empty};palette.Controls.Add(row);
+        bucketButton=Button("Capture bucket","bucket",54,ShowBucket,true);row.Controls.Add(bucketButton);
         void Tool(string name,string icon,EditTool tool){var b=Button(name,icon,60,()=>SetTool(tool),true);toolButtons.Add((b,tool));Hint(b,name+" — select a tool, then click or drag on the screenshot.");row.Controls.Add(b);}
         Tool("Select","select",EditTool.Select);Tool("Pen","pen",EditTool.Pen);
         ModernButton? shapes=null;shapes=Button("Rectangle","shape",64,()=>shapeMenu.Show(shapes!,new Point(0,-shapeMenu.PreferredSize.Height)),true);row.Controls.Add(shapes);toolButtons.Add((shapes,EditTool.Rectangle));
@@ -138,12 +148,26 @@ internal sealed class MainForm:Form
         customColour.Click+=(_,_)=>Safe(()=>{using var dialog=new ColorDialog{Color=editor.Selected?.Color??editor.Ink};if(dialog.ShowDialog(this)==DialogResult.OK){editor.Ink=dialog.Color;customColour.BackColor=dialog.Color;customColour.Invalidate();}});row.Controls.Add(customColour);
         row.Controls.Add(strokeLabel);row.Controls.Add(stroke);row.Controls.Add(sizeLabel);row.Controls.Add(size);
         stroke.ValueChanged+=(_,_)=>{if(!syncing)editor.Stroke=(int)stroke.Value;};size.ValueChanged+=(_,_)=>{if(!syncing)editor.FontSize=(int)size.Value;};
+        shapeFillButton.Click+=(_,_)=>EditShapeBackground();row.Controls.Add(shapeFillButton);Hint(shapeFillButton,"Rectangle/ellipse fill colour and opacity");
         borderButton.Click+=(_,_)=>EditTextBorder();row.Controls.Add(borderButton);Hint(borderButton,"Configure text box background, border style, width and colour");
         row.Controls.Add(counterSizeLabel);row.Controls.Add(counterDiameter);counterDiameter.ValueChanged+=(_,_)=>{if(!syncing)editor.CounterSize=(int)counterDiameter.Value;};Hint(counterDiameter,"Counter diameter in original image pixels (12–400)");row.Controls.Add(counterLabel);
         ModernButton? actions=null;actions=Button("","⋯",34,()=>objectMenu.Show(actions!,new Point(0,actions!.Height)));actions.Height=28;row.Controls.Add(actions);Hint(actions,"Edit text, text border, bring to front, delete and reset counter");
         var edit=objectMenu.Items.Add("Edit text…",null,(_,_)=>Safe(editor.EditSelectedText));var border=objectMenu.Items.Add("Text box border…",null,(_,_)=>EditTextBorder());var background=objectMenu.Items.Add("Text box background…",null,(_,_)=>EditTextBackground());var front=objectMenu.Items.Add("Bring selection to front",null,(_,_)=>editor.BringSelectedToFront());var delete=objectMenu.Items.Add("Delete selection",null,(_,_)=>editor.DeleteSelected());objectMenu.Items.Add(new ToolStripSeparator());objectMenu.Items.Add("Reset counter to 1",null,(_,_)=>editor.ResetCounter());
-        objectMenu.Opening+=(_,_)=>{edit.Enabled=editor.SelectionCount==1&&editor.Selected?.Kind==EditTool.Text;border.Enabled=editor.SelectionHasText||editor.Tool==EditTool.Text;background.Enabled=editor.Selected?.Kind==EditTool.Text||editor.Tool==EditTool.Text;front.Enabled=delete.Enabled=editor.Selected!=null;};
+        var shapeFill=objectMenu.Items.Add("Shape background…",null,(_,_)=>EditShapeBackground());
+        objectMenu.Opening+=(_,_)=>{shapeFill.Enabled=editor.SelectionHasShapes||editor.Tool is EditTool.Rectangle or EditTool.Ellipse;edit.Enabled=editor.SelectionCount==1&&editor.Selected?.Kind==EditTool.Text;border.Enabled=editor.SelectionHasText||editor.Tool==EditTool.Text;background.Enabled=editor.Selected?.Kind==EditTool.Text||editor.Tool==EditTool.Text;front.Enabled=delete.Enabled=editor.Selected!=null;};
         Hint(stroke,"Line width in original image pixels");Hint(size,"Font size in original image pixels");context.Visible=false;
+    }
+    private void EditShapeBackground()
+    {
+        Color fill=editor.Selected?.Kind is EditTool.Rectangle or EditTool.Ellipse?editor.Selected.ShapeBackground:editor.DefaultShapeBackground;
+        using var form=new Form{Text="Shape background",ClientSize=new Size(350,180),StartPosition=FormStartPosition.CenterParent,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false,MinimizeBox=false,Font=Font};
+        var colour=new Button{Text="Colour…",Location=new Point(18,18),Size=new Size(110,32),BackColor=fill.A==0?Color.White:Color.FromArgb(255,fill)};
+        var opacity=new NumericUpDown{Minimum=0,Maximum=100,Value=(decimal)Math.Round(fill.A*100d/255),Location=new Point(160,68),Width=80};
+        colour.Click+=(_,_)=>{using var dialog=new ColorDialog{FullOpen=true,Color=Color.FromArgb(255,fill)};if(dialog.ShowDialog(form)==DialogResult.OK){fill=dialog.Color;colour.BackColor=fill;if(opacity.Value==0)opacity.Value=100;}};
+        var clear=new Button{Text="No fill",Location=new Point(145,18),Size=new Size(95,32)};clear.Click+=(_,_)=>opacity.Value=0;
+        var apply=new Button{Text="Apply",DialogResult=DialogResult.OK,Location=new Point(130,122),Width=90};var cancel=new Button{Text="Cancel",DialogResult=DialogResult.Cancel,Location=new Point(230,122),Width=90};
+        form.Controls.AddRange([colour,clear,new Label{Text="Opacity (%)",Location=new Point(18,72),AutoSize=true},opacity,apply,cancel]);form.AcceptButton=apply;form.CancelButton=cancel;
+        if(form.ShowDialog(this)==DialogResult.OK)editor.SetShapeBackground(Color.FromArgb((int)Math.Round((double)opacity.Value*255/100),fill.R,fill.G,fill.B));
     }
     private void EditTextBackground()
     {
@@ -242,6 +266,7 @@ internal sealed class MainForm:Form
         context.Visible=editable;if(!editable)return;
         bool text=editor.SelectionHasText || editor.Selected==null && editor.Tool is EditTool.Text or EditTool.Sticker;
         bool counting=editor.Tool==EditTool.Counter || editor.SelectionHasCounter;counterDiameter.Visible=counterSizeLabel.Visible=counting;counterLabel.Text="Next: "+editor.NextCounter;counterLabel.Visible=counting&&editor.SelectionCount<=1;
+        shapeFillButton.Visible=editor.SelectionHasShapes||editor.Tool is EditTool.Rectangle or EditTool.Ellipse;
         borderButton.Visible=editor.SelectionCount<=1&&(editor.Selected?.Kind==EditTool.Text||editor.Tool==EditTool.Text);size.Visible=sizeLabel.Visible=text;stroke.Visible=strokeLabel.Visible=(!text||editor.SelectionCount>1) && !counting;
         float dpi=DeviceDpi/96f;var area=new Size((int)(workspace.Width/dpi),(int)(workspace.Height/dpi));var selected=editor.SelectedScreenBounds;
         RectangleF? logical=editor.Selected==null?null:new RectangleF(selected.X/dpi,selected.Y/dpi,selected.Width/dpi,selected.Height/dpi);
@@ -249,8 +274,69 @@ internal sealed class MainForm:Form
     }
     protected override void Dispose(bool disposing){if(disposing){tips.Dispose();captureMenu.Dispose();moreMenu.Dispose();shapeMenu.Dispose();privacyMenu.Dispose();objectMenu.Dispose();}base.Dispose(disposing);if(disposing){graphicStickers.Dispose();foreach(var item in importedStickers)item.Image.Dispose();}}
     private void Safe(Action action){try{action();}catch(Exception ex){MessageBox.Show(this,ex.Message,"ScreenAnote");}}
-    private bool ConfirmReplace()=>editor.Image==null || MessageBox.Show(this,"Replace the current screenshot? Save or copy it first if needed.","New image",MessageBoxButtons.OKCancel)==DialogResult.OK;
-    private void Replace(Bitmap bitmap){editor.LoadImage(bitmap);}
+    private bool ConfirmReplace()
+    {
+        if(editor.Image==null||editor.ContentVersion==bucketSavedVersion)return true;
+        using var prompt=new Form{Text="Unsaved capture",Size=new Size(520,190),StartPosition=FormStartPosition.CenterParent,FormBorderStyle=FormBorderStyle.FixedDialog,MaximizeBox=false,MinimizeBox=false,Font=Font,Padding=new Padding(14)};
+        var message=new Label{Dock=DockStyle.Fill,Text="Save this screenshot and its editable annotations to the bucket before continuing?"};
+        var buttons=new FlowLayoutPanel{Dock=DockStyle.Bottom,Height=40};
+        buttons.Controls.Add(new Button{Text="Save to bucket",Width=145,DialogResult=DialogResult.Yes});buttons.Controls.Add(new Button{Text="Discard changes",Width=145,DialogResult=DialogResult.No});var cancel=new Button{Text="Cancel",Width=100,DialogResult=DialogResult.Cancel};buttons.Controls.Add(cancel);prompt.Controls.Add(message);prompt.Controls.Add(buttons);prompt.CancelButton=cancel;
+        var result=prompt.ShowDialog(this);return result==DialogResult.No||result==DialogResult.Yes&&SaveBucket(activeBucket.HasValue);
+    }
+    private void Replace(Bitmap bitmap){activeBucket=null;bucketSavedVersion=-1;editor.LoadImage(bitmap);UpdateBucketControls();}
+    private void UpdateBucketControls()
+    {
+        if(addBucketButton!=null)addBucketButton.Enabled=editor.Image!=null&&!editor.GestureActive;
+        if(updateBucketButton!=null)updateBucketButton.Enabled=editor.Image!=null&&activeBucket.HasValue&&!editor.GestureActive;
+        bucketActive.Text=activeBucket.HasValue?$"Editing bucket item{(editor.ContentVersion!=bucketSavedVersion?" · unsaved changes":" · saved")}":editor.Image==null?"Capture or open an image to begin":"Current capture · not saved to bucket";
+    }
+    private void RefreshBucketCount()
+    {
+        int count=bucket.List().Count;if(bucketButton!=null){bucketButton.Badge=count.ToString();bucketButton.AccessibleName=$"Capture bucket, {count} items";Hint(bucketButton,$"Capture bucket · {count} items");bucketButton.Invalidate();}UpdateBucketControls();
+    }
+    private bool SaveBucket(bool update)
+    {
+        if(editor.Image==null||editor.GestureActive)return false;
+        if((long)editor.Image.Width*editor.Image.Height>100_000_000)throw new InvalidOperationException("Bucket images are limited to 100 megapixels.");
+        if(editor.BucketAssetBytes()>32_000_000)throw new InvalidOperationException("Bucket sticker copies exceed 32 MB. Remove some image stickers before saving.");
+        string name=update&&activeBucket.HasValue?bucket.Read(activeBucket.Value).Name:"Capture "+DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        if(!update){using var prompt=new BucketNameForm("Add to bucket",name);if(prompt.ShowDialog(this)!=DialogResult.OK)return false;name=prompt.ItemName;}
+        UseWaitCursor=true;
+        try
+        {
+            var records=editor.BucketAnnotations();if(records.Length>1000||System.Text.Json.JsonSerializer.Serialize(records).Length>32_000_000)throw new InvalidOperationException("Bucket annotation limit: 1000 objects / 32 MB.");
+            using var original=new Bitmap(editor.Image);using var rendered=editor.RenderImage();var work=new BucketWork(records,editor.NextCounter);
+            var saving=Task.Run(()=>bucket.Save(name,path=>
+            {
+                original.Save(Path.Combine(path,"original.png"),ImageFormat.Png);
+                File.WriteAllText(Path.Combine(path,"work.json"),System.Text.Json.JsonSerializer.Serialize(work));
+                using var thumb=new Bitmap(160,100);using var graphics=Graphics.FromImage(thumb);graphics.Clear(Color.White);graphics.InterpolationMode=System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                float scale=Math.Min(160f/rendered.Width,100f/rendered.Height);var size=new SizeF(rendered.Width*scale,rendered.Height*scale);graphics.DrawImage(rendered,new RectangleF((160-size.Width)/2,(100-size.Height)/2,size.Width,size.Height));thumb.Save(Path.Combine(path,"thumbnail.png"),ImageFormat.Png);
+            },update?activeBucket:null));
+            using(var progress=new BucketSavingForm(saving))progress.ShowDialog(this);
+            var entry=saving.GetAwaiter().GetResult();
+            activeBucket=entry.Id;bucketSavedVersion=editor.ContentVersion;RefreshBucketCount();status.Text="Saved to bucket: "+entry.Name;return true;
+        }
+        finally{UseWaitCursor=false;}
+    }
+    private void ShowBucket()
+    {
+        using var form=new BucketForm(bucket);
+        form.ItemDeleted+=id=>{if(activeBucket==id){activeBucket=null;bucketSavedVersion=-1;}RefreshBucketCount();};form.ItemsChanged+=RefreshBucketCount;
+        if(form.ShowDialog(this)!=DialogResult.OK||form.SelectedId is not Guid id)return;
+        if(activeBucket==id){editor.Focus();return;}
+        var entry=bucket.Read(id);var path=bucket.DataFolder(entry);
+        var json=File.ReadAllText(Path.Combine(path,"work.json"));if(json.Length>32_000_000)throw new InvalidDataException("Bucket annotations exceed 32 MB.");
+        var work=System.Text.Json.JsonSerializer.Deserialize<BucketWork>(json)??throw new InvalidDataException("Invalid bucket annotations.");
+        if(work.Annotations==null||work.Annotations.Length>1000||work.NextCounter<1)throw new InvalidDataException("Invalid bucket work data.");
+        // Validate all annotations and the image before allowing the current work
+        // to be discarded; each loaded sticker owns an independent bitmap.
+        var validation=work.Annotations.Length==0?new List<Annotation>():AnnotationTransfer.DeserializeMany(System.Text.Json.JsonSerializer.Serialize(work.Annotations));foreach(var item in validation)item.Asset?.Dispose();
+        using var source=System.Drawing.Image.FromFile(Path.Combine(path,"original.png"));if((long)source.Width*source.Height>100_000_000)throw new InvalidDataException("Bucket image exceeds 100 megapixels.");
+        Bitmap? image=new Bitmap(source);
+        try{if(!ConfirmReplace())return;editor.LoadBucket(image,work.Annotations,work.NextCounter);image=null;activeBucket=id;bucketSavedVersion=editor.ContentVersion;UpdateBucketControls();status.Text="Opened bucket item: "+entry.Name;}
+        finally{image?.Dispose();}
+    }
     private bool recordingWindowOpen;
     private async Task RecordVideo()
     {

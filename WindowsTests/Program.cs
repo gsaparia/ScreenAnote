@@ -48,6 +48,28 @@ internal static class Program
             var container=Encoding.Latin1.GetString(bytes);if(!container.Contains("avc1")||!container.Contains("mp4a"))throw new Exception("Missing H.264 / AAC sample descriptions");
             if(Mp4FragmentInspector.CompleteFragments(path)<1)throw new Exception("Output is not a completed fragmented MP4");
             Console.WriteLine("PASS: Windows native H.264 + AAC encoder and fragmented MP4 audio/video container.");
+            if(args.Contains("--shapefill"))
+            {
+                foreach(var kind in new[]{EditTool.Rectangle,EditTool.Ellipse})
+                {
+                    using var fillBitmap=new Bitmap(80,80);using var graphics=Graphics.FromImage(fillBitmap);graphics.Clear(Color.Blue);
+                    var shape=new Annotation{Kind=kind,Bounds=new RectangleF(10,10,60,60),Color=Color.Green,Stroke=4,ShapeBackground=Color.FromArgb(128,255,0,0)};shape.Draw(graphics);
+                    var centre=fillBitmap.GetPixel(40,40);if(Math.Abs(centre.R-128)>1||Math.Abs(centre.B-127)>1)throw new Exception("Shape background opacity failed");
+                    graphics.Clear(Color.Blue);shape.ShapeBackground=Color.Transparent;shape.Draw(graphics);if(fillBitmap.GetPixel(40,40).ToArgb()!=Color.Blue.ToArgb())throw new Exception("Transparent shape background filled its interior");
+                }
+                Console.WriteLine("PASS: rectangle and ellipse native fill rendering, opacity and no fill.");
+            }
+            if(args.Contains("--bucket"))
+            {
+                using var editor=new ImageEditor();var original=new Bitmap(100,100);using(var graphics=Graphics.FromImage(original))graphics.Clear(Color.Blue);
+                var rectangle=new Annotation{Kind=EditTool.Redact,Bounds=new RectangleF(5,5,30,30),Color=Color.Red,Stroke=4};
+                editor.LoadBucket(original,new[]{AnnotationTransfer.Serialize(rectangle)},42);
+                if(editor.NextCounter!=42||editor.BucketAnnotations().Length!=1||editor.Image!.GetPixel(10,10).ToArgb()!=Color.Blue.ToArgb())throw new Exception("Bucket did not restore editable original and counter");
+                using(var rendered=editor.RenderImage())if(rendered.GetPixel(10,10).ToArgb()!=Color.Red.ToArgb())throw new Exception("Restored annotation did not render");
+                long version=editor.ContentVersion;editor.ZoomBy(1.1f);if(editor.ContentVersion!=version)throw new Exception("View change marked bucket work dirty");editor.ResetCounter(43);if(editor.ContentVersion==version)throw new Exception("Counter edit was not tracked");
+                editor.Undo();if(editor.NextCounter!=42)throw new Exception("Bucket restore broke editor undo");
+                Console.WriteLine("PASS: bucket original pixels, editable annotations, counter continuation, dirty tracking and undo.");
+            }
             if(args.Contains("--microphone"))
             {
                 Console.WriteLine("Speak for two seconds: testing default microphone capture.");using var microphone=new WaveMicrophone(true,()=>false);bool sound=false;

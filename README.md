@@ -14,6 +14,53 @@ Local annotation and screen capture; URL browsing makes ordinary web requests.
 The included application was compiled successfully, but has not been launched on
 Windows in the delivery environment.
 
+## Portable bucket files and shape backgrounds (7.0.12)
+
+**Bucket → Save bucket…** saves the entire current collection of saved items to
+one `.screenanote-bucket` archive. It includes original PNGs, editable annotation
+layers/embedded stickers, thumbnails, item names/times, and next counter numbers.
+Add or update your current canvas first to include its latest changes. Deleted
+items retained for Undo delete are excluded.
+
+**Bucket → Open bucket…** loads that archive on this or another computer. Items
+are added as independent editable copies; existing bucket items remain available.
+Double-click an imported item to edit it, Update bucket item after changes, and
+Save bucket again to produce an updated archive. Archives allow up to 2000 items
+and 8 GB expanded data. Save/open runs in the background with progress; failed
+archive saves preserve the previous file, and failed imports publish no items.
+
+For rectangles and ellipses, select the shape and click **Fill…** in the floating
+appearance toolbar (or **⋯ → Shape background…**). Choose a colour and opacity
+from 0–100%; **No fill** clears the background. Fill is independent of outline
+colour/width. It applies to selected shapes in a group and becomes the default
+for new rectangles/ellipses. Fill survives duplicate, copy/paste, undo/redo,
+export, local bucket storage, and portable bucket files. Older shapes remain
+transparent until changed.
+
+## Capture bucket (7.0.11)
+
+- **Add to bucket** in the top command bar saves an independent, named snapshot
+  of the original image and editable annotations. Further edits do not overwrite
+  it until you choose **Update bucket item**.
+- The bottom **bucket icon** has an item-count badge. Open it to see thumbnail,
+  name, creation time and last-update time. Double-click an item or choose Open
+  to restore its image, annotation layers and next counter number.
+- **Rename**, **Delete** and **Undo delete** are available in the bucket list.
+  Deleting an open item leaves its canvas available and detaches it from that
+  item. Undo deletion restores the stored item; deleted items remain locally
+  retained for undo, including after an app restart.
+- Switching images/items or closing with unsaved editable work offers **Save to
+  bucket**, **Discard changes**, or **Cancel**. A PNG/JPEG export is separate from
+  saving editable bucket work. Pan/zoom/selection do not mark saved work dirty.
+- Bucket data persists under `%LOCALAPPDATA%\ScreenAnote\CaptureBucket`.
+  No captures are uploaded. Full images load only when opened; the list uses
+  thumbnails. Saves write a complete new revision in the background before
+  publishing it, with a progress window while saving.
+- Per item: up to 100 megapixels, 1000 annotations, 32 MB annotation payload and
+  32 MB decoded sticker copies. Limits are checked before saving. Undo/redo
+  history and current view position are not persisted; opened items fit the canvas
+  and start fresh undo history. Annotations remain editable.
+
 ## Cursor recording (7.0.10)
 
 **Show cursor** in the recording popup is checked by default. Toggle it before

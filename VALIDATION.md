@@ -1,3 +1,54 @@
+## Portable bucket and shape background update (7.0.12)
+
+- Application and Windows smoke tests compile; included Windows executable rebuilt.
+- Portable tests pass for archive save/open roundtrip, item names/times, exact
+  original PNG and annotation payload preservation, independent imported IDs,
+  repeat import preserving existing items, and rollback of invalid archives.
+- Unexpected archive paths are rejected; only manifest-declared fixed filenames
+  are staged. PNG dimensions, archive format/version and size limits are checked.
+- Shape-fill tests cover rectangle/ellipse serialization, clone preservation and
+  backward-compatible transparent defaults for older annotation payloads.
+- Windows --shapefill rendering test added for alpha blending and transparent
+  shape interiors. Compiled only; cannot execute native GDI+/WinForms here.
+- Actual Windows Save/Open dialogs, shape fill UI, grouped selection, high-DPI
+  layout and native rendering still need runtime verification. Visual Studio /
+  MSBuild was not run; direct .NET 8 compiler was used.
+- Scrolling engine/capture and all recording sources remain byte-for-byte
+  unchanged from 7.0.11. MainForm.DoCapture is unchanged.
+
+On Windows: dotnet run --project WindowsTests/WindowsSmoke.csproj -- --bucket --shapefill
+Save a bucket containing text, counter, pen and imported sticker; reopen on a
+second Windows machine, edit/update, save again and verify data survives restart.
+Test opaque/translucent/no-fill rectangles and ellipses, independent outlines,
+group edits, copy/paste, Ctrl+drag duplicate, undo/redo and archive reload.
+
+## Capture bucket update (7.0.11)
+
+- Application and Windows smoke-test source compile; included Windows executable
+  rebuilt. Existing portable suite and new persistent bucket tests pass.
+- Tested on the local filesystem: restart persistence, identity/creation-time
+  preserving updates, rollback after a simulated write failure, renaming,
+  delete/undo across store instances, and skipping/reporting corrupt metadata.
+- Existing annotation serialization tests cover text backgrounds/borders,
+  geometry, duplication, clipboard payloads, and embedded sticker representation.
+- Native Windows editor test added via --bucket: checks original pixels remain
+  separate from rendered annotations, counter restoration, view-only versus
+  content dirty tracking, and editor undo after loading. Compiled, not executed.
+- ScrollingCapture.cs and Capture.cs match 7.0.10 byte for byte. MainForm.DoCapture
+  remains unchanged; shared replacement confirmation now offers bucket saving.
+- Recording sources (capture/cursor, recorder, popup, audio mixer, microphone,
+  encoder and FPS helper) match 7.0.10 byte for byte.
+- Windows UI layout, high-DPI behavior, bitmap persistence/rendering and actual
+  large-image save responsiveness remain unverified. Visual Studio/MSBuild
+  cannot run in this environment; direct .NET 8 compilation was used.
+
+On Windows run: dotnet run --project WindowsTests/WindowsSmoke.csproj -- --bucket
+Then add a screenshot with text, pen, redaction, counter and imported sticker;
+edit after saving and reopen to verify independence; update and restart to verify
+persistence. Check named thumbnails/counts, rename, delete an open item, undo,
+Save/Discard/Cancel during item switching and closing, and pan/zoom without an
+unsaved-work prompt. Test the minimum window size and 100%/150%/200% DPI.
+
 ## Recording cursor update (7.0.10)
 
 - Application and Windows smoke-test sources compile successfully; Windows x64

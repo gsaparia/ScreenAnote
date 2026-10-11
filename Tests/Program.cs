@@ -166,6 +166,56 @@ if(RecordingScreenCapture.CursorLocation(new Rectangle(100,100,500,300),new Poin
 if(RecordingScreenCapture.CursorLocation(new Rectangle(0,-1080,1920,1080),new Point(200,-1000),Point.Empty)!=new Point(200,80))throw new Exception("Cursor placement on upper monitor failed");
 Console.WriteLine("PASS: recording cursor placement on negative-coordinate monitors and partial region edges.");
 
+// Persistent bucket revisions, failure rollback, rename and reversible deletion.
+var bucketDirectory=Path.Combine(Path.GetTempPath(),"ScreenAnoteBucketTest_"+Guid.NewGuid().ToString("N"));
+try
+{
+ var store=new CaptureBucket(bucketDirectory);
+ var stored=store.Save("First",path=>File.WriteAllText(Path.Combine(path,"original.png"),"original"));
+ if(new CaptureBucket(bucketDirectory).List().Single().Id!=stored.Id)throw new Exception("Bucket persistence failed");
+ var updated=store.Save("Updated",path=>File.WriteAllText(Path.Combine(path,"original.png"),"new"),stored.Id);
+ if(updated.Id!=stored.Id||updated.Created!=stored.Created||updated.Revision==stored.Revision||File.ReadAllText(Path.Combine(store.DataFolder(updated),"original.png"))!="new")throw new Exception("Bucket update identity/data failed");
+ try{store.Save("Broken",path=>throw new IOException("Simulated failed write"),stored.Id);throw new Exception("Failed save was accepted");}catch(IOException){}
+ if(store.Read(stored.Id)!=updated)throw new Exception("Failed save replaced the prior revision");
+ store.Rename(stored.Id,"Renamed");if(store.Read(stored.Id).Name!="Renamed")throw new Exception("Bucket rename failed");
+ store.Delete(stored.Id);if(store.List().Count!=0||!store.HasDeleted)throw new Exception("Bucket delete failed");
+ if(new CaptureBucket(bucketDirectory).UndoDelete()!=stored.Id||store.List().Single().Name!="Renamed")throw new Exception("Persistent delete undo failed");
+ var corrupt=Guid.NewGuid();Directory.CreateDirectory(Path.Combine(bucketDirectory,corrupt.ToString("N")));File.WriteAllText(Path.Combine(bucketDirectory,corrupt.ToString("N"),"entry.json"),"invalid JSON");
+ if(store.List().Count!=1||store.UnreadableItems!=1)throw new Exception("Corrupt bucket item handling failed");
+}
+finally{Directory.Delete(bucketDirectory,true);}
+Console.WriteLine("PASS: bucket persistence, identity-preserving update, failed-save rollback, rename, delete/undo and corrupt-entry handling.");
+
+// Shape fills survive serialization/duplication and older snapshots stay clear.
+foreach(var kind in new[]{EditTool.Rectangle,EditTool.Ellipse})
+{
+ var shape=new Annotation{Kind=kind,Bounds=new RectangleF(2,3,40,30),ShapeBackground=Color.FromArgb(128,10,20,30)};
+ if(AnnotationTransfer.Deserialize(AnnotationTransfer.Serialize(shape)).ShapeBackground.ToArgb()!=shape.ShapeBackground.ToArgb()||shape.Clone().ShapeBackground.ToArgb()!=shape.ShapeBackground.ToArgb())throw new Exception("Shape fill roundtrip failed");
+ var oldShape=System.Text.Json.Nodes.JsonNode.Parse(AnnotationTransfer.Serialize(shape))!.AsObject();oldShape.Remove("ShapeBackgroundArgb");if(AnnotationTransfer.Deserialize(oldShape.ToJsonString()).ShapeBackground.A!=0)throw new Exception("Legacy shape fill default failed");
+}
+Console.WriteLine("PASS: rectangle/ellipse fill serialization, clone preservation and legacy transparency.");
+var portableFolder=Path.Combine(Path.GetTempPath(),"ScreenAnoteArchiveTest_"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(portableFolder);
+try
+{
+ var firstStore=new CaptureBucket(Path.Combine(portableFolder,"first"));var secondStore=new CaptureBucket(Path.Combine(portableFolder,"second"));
+ var png=Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNIqej5DwAFFAJoyqIuKQAAAABJRU5ErkJggg==");
+ var shape=new Annotation{Kind=EditTool.Rectangle,Bounds=new RectangleF(2,3,40,30),ShapeBackground=Color.FromArgb(128,10,20,30)};
+ var payload=System.Text.Json.JsonSerializer.Serialize(new BucketWork(new[]{AnnotationTransfer.Serialize(shape)},42));
+ var item=firstStore.Save("Portable capture",folder=>{File.WriteAllBytes(Path.Combine(folder,"original.png"),png);File.WriteAllBytes(Path.Combine(folder,"thumbnail.png"),png);File.WriteAllText(Path.Combine(folder,"work.json"),payload);});
+ string archivePath=Path.Combine(portableFolder,"bucket.screenanote-bucket");firstStore.Export(archivePath);
+ if(secondStore.Import(archivePath)!=1)throw new Exception("Bucket import count failed");
+ var imported=secondStore.List().Single();if(imported.Id==item.Id||imported.Name!=item.Name||imported.Created!=item.Created)throw new Exception("Imported bucket metadata/copy identity failed");
+ var data=secondStore.DataFolder(imported);if(!File.ReadAllBytes(Path.Combine(data,"original.png")).SequenceEqual(png)||File.ReadAllText(Path.Combine(data,"work.json"))!=payload)throw new Exception("Bucket archive changed editable data");
+ if(secondStore.Import(archivePath)!=1||secondStore.List().Count!=2)throw new Exception("Opening a bucket replaced existing items");
+ using(var zip=System.IO.Compression.ZipFile.Open(archivePath,System.IO.Compression.ZipArchiveMode.Update)){zip.GetEntry(item.Id.ToString("N")+"/work.json")!.Delete();using var writer=new StreamWriter(zip.CreateEntry(item.Id.ToString("N")+"/work.json").Open());writer.Write("invalid JSON");}
+ try{secondStore.Import(archivePath);throw new Exception("Invalid import was accepted");}catch(System.Text.Json.JsonException){}
+ if(secondStore.List().Count!=2)throw new Exception("Failed import changed existing bucket");
+ string unsafeArchive=Path.Combine(portableFolder,"unsafe.screenanote-bucket");firstStore.Export(unsafeArchive);using(var zip=System.IO.Compression.ZipFile.Open(unsafeArchive,System.IO.Compression.ZipArchiveMode.Update))zip.CreateEntry("../escape.txt");
+ try{secondStore.Import(unsafeArchive);throw new Exception("Unexpected archive entry was accepted");}catch(InvalidDataException){}
+}
+finally{Directory.Delete(portableFolder,true);}
+Console.WriteLine("PASS: editable bucket archive roundtrip, independent import copies, metadata/images/work preservation and invalid-import rollback.");
+
 sealed class FakeAudioCapture : NAudio.Wave.IWaveIn
 {
  private readonly bool failStart;

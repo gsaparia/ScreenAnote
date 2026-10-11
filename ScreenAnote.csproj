@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>WinExe</OutputType><Version>7.0.10</Version><TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>WinExe</OutputType><Version>7.0.12</Version><TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms><EnableWindowsTargeting>true</EnableWindowsTargeting>
     <LangVersion>12.0</LangVersion><AllowUnsafeBlocks>true</AllowUnsafeBlocks><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
     <ApplicationIcon>Assets/ScreenAnote.ico</ApplicationIcon>
