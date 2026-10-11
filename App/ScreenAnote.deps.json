@@ -65,7 +65,7 @@
           }
         }
       },
-      "ScreenAnote/7.0.6": {
+      "ScreenAnote/7.0.10": {
         "dependencies": {
           "Microsoft.Web.WebView2": "1.0.3537.50",
           "Microsoft.Web.WebView2.Core": "1.0.3537.50",
@@ -125,7 +125,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "ScreenAnote/7.0.6": {
+    "ScreenAnote/7.0.10": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

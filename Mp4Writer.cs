@@ -9,22 +9,32 @@ internal sealed unsafe class Mp4Writer:IDisposable
     private int stream,audioStream=-1;
     private bool started,comInitialized,finished;
     private readonly int bytes;
+    // Explicit container selection overrides the .mp4 extension's regular MP4 default.
+    private static readonly Guid ContainerType=new("150ff23f-4abc-478b-ac4f-e1916fba1cca"),FragmentedMp4=new("9ba876f1-419f-4b77-a1e0-35959d9d4004");
     private static readonly Guid Major=new("48eba18e-f8c9-4687-bf11-0a74c9f96a8f"),Subtype=new("f7e34c9a-42e8-4714-b74b-cb29d72c35e5"),Video=new("73646976-0000-0010-8000-00aa00389b71"),H264=new("34363248-0000-0010-8000-00aa00389b71"),Nv12=new("3231564e-0000-0010-8000-00aa00389b71");
     private static readonly Guid Matrix=new("3e23d450-2c75-4d25-a00e-b91670d12327"),Range=new("c21b8ee5-b956-4071-8daf-325edf5cab11");
     private static readonly Guid FrameSize=new("1652c33d-d6b2-4012-b834-72030849a37d"),FrameRate=new("c459a2e8-3d2c-4e44-b132-fee5156c7bb0"),Aspect=new("c6376a1e-8d0a-4027-be45-6d9a0ad39bb6"),Interlace=new("e2724bb8-e676-4806-b4b2-a8d6efb44ccd"),Bitrate=new("20332624-fb0d-4d9e-bd0d-cbf6786c102e"),Stride=new("644b4e48-1e02-4516-b0eb-c01ca9d49ac6");
-    public Mp4Writer(string path,int width,int height,bool audio=false)
+    public Mp4Writer(string path,int width,int height,bool audio=false,int fps=VideoFrames.Fps)
     {
+        VideoFrames.FrameDuration(fps);
         bytes=checked(width*height*3/2);
         try
         {
             Check(CoInitializeEx(0,0));comInitialized=true;Check(MFStartup(0x20070,0));started=true;
-            Check(MFCreateSinkWriterFromURL(path,0,0,out writer));
+            nint attributes=0;
+            try
+            {
+                Check(MFCreateAttributes(out attributes,1));
+                SetGuid(attributes,ContainerType,FragmentedMp4);
+                Check(MFCreateSinkWriterFromURL(path,0,attributes,out writer));
+            }
+            finally{Release(ref attributes);}
             nint output=0,input=0;
             try
             {
-                Check(MFCreateMediaType(out output));Configure(output,H264,width,height);Set32(output,Bitrate,4_000_000);
+                Check(MFCreateMediaType(out output));Configure(output,H264,width,height,fps);Set32(output,Bitrate,4_000_000);
                 int index=0;Check(((delegate* unmanaged[Stdcall]<nint,nint,int*,int>)Slot(writer,3))(writer,output,&index));stream=index;
-                Check(MFCreateMediaType(out input));Configure(input,Nv12,width,height);Set32(input,Stride,(uint)width);
+                Check(MFCreateMediaType(out input));Configure(input,Nv12,width,height,fps);Set32(input,Stride,(uint)width);
                 Check(((delegate* unmanaged[Stdcall]<nint,int,nint,nint,int>)Slot(writer,4))(writer,stream,input,0));
                 if(audio)ConfigureAudio();
                 Check(((delegate* unmanaged[Stdcall]<nint,int>)Slot(writer,5))(writer));
@@ -33,10 +43,10 @@ internal sealed unsafe class Mp4Writer:IDisposable
         }
         catch{Dispose();throw;}
     }
-    private static void Configure(nint type,Guid subtype,int width,int height)
+    private static void Configure(nint type,Guid subtype,int width,int height,int fps)
     {
         SetGuid(type,Major,Video);SetGuid(type,Subtype,subtype);Set32(type,Interlace,2);Set32(type,Matrix,2);Set32(type,Range,2);
-        Set64(type,FrameSize,((ulong)(uint)width<<32)|(uint)height);Set64(type,FrameRate,((ulong)VideoFrames.Fps<<32)|1);Set64(type,Aspect,(1UL<<32)|1);
+        Set64(type,FrameSize,((ulong)(uint)width<<32)|(uint)height);Set64(type,FrameRate,((ulong)fps<<32)|1);Set64(type,Aspect,(1UL<<32)|1);
     }
     private static readonly Guid Audio=new("73647561-0000-0010-8000-00aa00389b71"),Aac=new("00001610-0000-0010-8000-00aa00389b71"),Pcm=new("00000001-0000-0010-8000-00aa00389b71"),Channels=new("37e48bf5-645e-4c5b-89de-ada9e29b696a"),Rate=new("5faeeae7-0290-4c31-9e8a-c534f68d9dba"),Bits=new("f2deb57f-40fa-4764-aa33-ed4f2d1ff669"),AvgBytes=new("1aab75c8-cfef-451c-ab95-ac034b8e1731"),Alignment=new("322de230-9eeb-43bd-ab7a-ff412251541d");
     private void ConfigureAudio()
@@ -91,6 +101,7 @@ internal sealed unsafe class Mp4Writer:IDisposable
     [DllImport("ole32.dll")]private static extern void CoUninitialize();
     [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFStartup(int version,int flags);
     [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFShutdown();
+    [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFCreateAttributes(out nint attributes,int initialSize);
     [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFCreateMediaType(out nint type);
     [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFCreateMemoryBuffer(int size,out nint buffer);
     [DllImport("mfplat.dll",ExactSpelling=true)]private static extern int MFCreateSample(out nint sample);

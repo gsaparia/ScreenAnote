@@ -130,6 +130,42 @@ var mutedSource=new SystemAudio(false,()=>false,()=>throw new Exception("Muted a
 mutedSource.StopCapture();mutedSource.StopCapture();mutedSource.Dispose();mutedSource.Dispose();
 Console.WriteLine("PASS: speaker shutdown/startup failure allows capture callbacks during disposal; repeated stop/dispose is safe.");
 
+// Live fragment inspection must count only complete moof/mdat pairs and must
+// tolerate a partially written final box without loading the whole recording.
+byte[] BoxBytes(string kind,params byte[] payload)
+{
+ var value=new byte[payload.Length+8];System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(value,(uint)value.Length);System.Text.Encoding.ASCII.GetBytes(kind).CopyTo(value,4);payload.CopyTo(value,8);return value;
+}
+var atoms=BoxBytes("ftyp").Concat(BoxBytes("moov")).Concat(BoxBytes("moof")).Concat(BoxBytes("mdat",1,2,3)).Concat(BoxBytes("moof")).Concat(BoxBytes("mdat",4,5,6)).ToArray();
+using(var input=new MemoryStream(atoms))if(Mp4FragmentInspector.CompleteFragments(input)!=2)throw new Exception("Complete MP4 fragment count failed");
+using(var input=new MemoryStream(atoms[..^1]))if(Mp4FragmentInspector.CompleteFragments(input)!=1)throw new Exception("Partial fragment was counted");
+using(var input=new MemoryStream(BoxBytes("ftyp").Concat(BoxBytes("moov")).Concat(BoxBytes("mdat",1)).ToArray()))if(Mp4FragmentInspector.CompleteFragments(input)!=0)throw new Exception("Regular MP4 counted as fragmented");
+Console.WriteLine("PASS: MP4 inspection counts committed fragments, ignores partial tails, and rejects regular MP4.");
+
+// Gain must be independent for each source, including mute and signed PCM extrema.
+var gainMixer=new RecordingAudioMixer();
+if(!gainMixer.Mix(Pcm(1000,-1000,0),Pcm(2000,-2000,0),200,50).SequenceEqual(Pcm(3000,-3000,0)))throw new Exception("Independent source gain failed");
+if(!new RecordingAudioMixer().Mix(Pcm(1000,-1000),Pcm(2000,-2000),0,100).SequenceEqual(Pcm(2000,-2000)))throw new Exception("Mic gain mute muted speaker");
+if(!new RecordingAudioMixer().Mix(Pcm(1000,-1000),Pcm(2000,-2000),100,0).SequenceEqual(Pcm(1000,-1000)))throw new Exception("Speaker mute muted mic");
+if(AudioMix.Peak(Pcm(short.MinValue))!=1||AudioMix.Peak(Pcm(0,0))!=0)throw new Exception("PCM peak meter failed");
+var limiter=new RecordingAudioMixer();
+var limited=limiter.Mix(Pcm(short.MaxValue,short.MinValue,10000,-10000),Pcm(short.MaxValue,short.MinValue,0,0),400,100);
+for(int i=0;i<limited.Length;i+=2)if(Math.Abs((int)System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(limited.AsSpan(i,2)))>RecordingAudioMixer.Ceiling)throw new Exception("Limiter exceeded its ceiling");
+if(System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(limited)<=0||System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(limited.AsSpan(2))>=0)throw new Exception("Limiter inverted or wrapped peaks");
+var quiet=Pcm(Enumerable.Repeat((short)1000,AudioFrames.SampleRate).ToArray());
+var released=limiter.Mix(quiet,new byte[quiet.Length],100,0);
+int firstAudio=System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(released),lastAudio=System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(released.AsSpan(released.Length-2));
+if(lastAudio<=firstAudio||lastAudio<990||lastAudio>1000)throw new Exception("Limiter did not recover smoothly after loud audio");
+if(new RecordingAudioMixer().Mix(Pcm(1000,-1000),Pcm(2000,-2000),0,0).Any(b=>b!=0))throw new Exception("Muted mix is not silent");
+Console.WriteLine("PASS: independent mic/system gain and mute, signed peak meter, limiter ceiling/sign and smooth release.");
+
+// Cursor hotspot placement uses virtual-desktop coordinates before scaling.
+var leftScreen=new Rectangle(-1909,230,1248,715);
+if(RecordingScreenCapture.CursorLocation(leftScreen,new Point(-1800,300),new Point(5,7))!=new Point(104,63))throw new Exception("Cursor placement on left monitor failed");
+if(RecordingScreenCapture.CursorLocation(new Rectangle(100,100,500,300),new Point(100,100),new Point(8,12))!=new Point(-8,-12))throw new Exception("Cursor edge clipping/hotspot placement failed");
+if(RecordingScreenCapture.CursorLocation(new Rectangle(0,-1080,1920,1080),new Point(200,-1000),Point.Empty)!=new Point(200,80))throw new Exception("Cursor placement on upper monitor failed");
+Console.WriteLine("PASS: recording cursor placement on negative-coordinate monitors and partial region edges.");
+
 sealed class FakeAudioCapture : NAudio.Wave.IWaveIn
 {
  private readonly bool failStart;

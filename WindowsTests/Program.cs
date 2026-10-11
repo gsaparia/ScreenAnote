@@ -8,21 +8,34 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        int fps=int.Parse(args.FirstOrDefault(a=>a.StartsWith("--fps="))?.Substring(6)??VideoFrames.Fps.ToString());
+        VideoFrames.FrameDuration(fps);
         string path=Path.Combine(Path.GetTempPath(),"ScreenAnoteSmoke_"+Guid.NewGuid().ToString("N")+".mp4");
         try
         {
             // Native H.264 path exercises every COM vtable call, buffer lifetime,
-            // time/duration setter and MP4 finalization with 15 synthetic frames.
+            // time/duration setter and fragmented MP4 finalization.
             var rgb=new byte[320*240*4];var yuv=new byte[320*240*3/2];
-            using(var writer=new Mp4Writer(path,320,240,true))
+            using(var writer=new Mp4Writer(path,320,240,true,fps))
             {
-                for(int frame=0;frame<15;frame++)
+                int frames=args.Contains("--fragmented")?fps*30:fps;
+                long previousLength=0;bool grew=false;
+                for(int frame=0;frame<frames;frame++)
                 {
                     for(int y=0;y<240;y++)for(int x=0;x<320;x++){int i=(y*320+x)*4;rgb[i]=(byte)x;rgb[i+1]=(byte)y;rgb[i+2]=(byte)(frame*17);rgb[i+3]=255;}
-                    VideoFrames.ToNv12(rgb,yuv,320,240);writer.Write(yuv,frame*VideoFrames.FrameTicks,VideoFrames.FrameTicks);
-                    var tone=new byte[2940*2];for(int sample=0;sample<2940;sample++){short value=(short)(Math.Sin((frame*2940+sample)*Math.PI*2*440/44100)*6000);System.Buffers.Binary.BinaryPrimitives.WriteInt16LittleEndian(tone.AsSpan(sample*2,2),value);}writer.WriteAudio(tone,frame*2940);
+                    VideoFrames.ToNv12(rgb,yuv,320,240);writer.Write(yuv,frame*VideoFrames.FrameDuration(fps),VideoFrames.FrameDuration(fps));
+                    long firstSample=(long)frame*AudioFrames.SampleRate/fps;int samples=(int)((long)(frame+1)*AudioFrames.SampleRate/fps-firstSample);
+                    var tone=new byte[samples*2];for(int sample=0;sample<samples;sample++){short value=(short)(Math.Sin((firstSample+sample)*Math.PI*2*440/44100)*6000);System.Buffers.Binary.BinaryPrimitives.WriteInt16LittleEndian(tone.AsSpan(sample*2,2),value);}writer.WriteAudio(tone,firstSample);
+                    if(frame%15==0){long length=new FileInfo(path).Length;if(previousLength>0&&length>previousLength)grew=true;previousLength=length;}
                 }
-                writer.Complete();
+                if(args.Contains("--fragmented"))
+                {
+                    int count=Mp4FragmentInspector.CompleteFragments(path);
+                    if(!grew||count<2)throw new Exception("Expected multiple completed MP4 fragments on disk before Stop; found "+count);
+                    Console.WriteLine("PASS: "+count+" complete fragments written before finalization; file grows during recording.");
+                }
+                var finish=System.Diagnostics.Stopwatch.StartNew();writer.Complete();
+                Console.WriteLine("MP4 finalization: "+finish.Elapsed.TotalMilliseconds.ToString("0")+" ms.");
             }
             var bytes=File.ReadAllBytes(path);var boxes=new HashSet<string>();
             for(int pos=0;pos+8<=bytes.Length;)
@@ -31,9 +44,10 @@ internal static class Program
                 if(size==1){if(pos+16>bytes.Length)throw new Exception("Truncated MP4 atom");size=BinaryPrimitives.ReadUInt64BigEndian(bytes.AsSpan(pos+8,8));}
                 if(size==0)size=(ulong)(bytes.Length-pos);if(size<8||size>(ulong)(bytes.Length-pos))throw new Exception("Invalid MP4 atom length");boxes.Add(name);pos+=checked((int)size);
             }
-            if(!boxes.IsSupersetOf(new[]{"ftyp","mdat","moov"})||bytes.Length<1000)throw new Exception("Missing finalized MP4 structure");
+            if(!boxes.IsSupersetOf(new[]{"ftyp","mdat","moov","moof"})||bytes.Length<1000)throw new Exception("Missing finalized MP4 structure");
             var container=Encoding.Latin1.GetString(bytes);if(!container.Contains("avc1")||!container.Contains("mp4a"))throw new Exception("Missing H.264 / AAC sample descriptions");
-            Console.WriteLine("PASS: Windows native H.264 + AAC encoder and finalized MP4 audio/video container.");
+            if(Mp4FragmentInspector.CompleteFragments(path)<1)throw new Exception("Output is not a completed fragmented MP4");
+            Console.WriteLine("PASS: Windows native H.264 + AAC encoder and fragmented MP4 audio/video container.");
             if(args.Contains("--microphone"))
             {
                 Console.WriteLine("Speak for two seconds: testing default microphone capture.");using var microphone=new WaveMicrophone(true,()=>false);bool sound=false;
@@ -52,15 +66,16 @@ internal static class Program
                 {
                     var region=new Rectangle(display.Bounds.Location,new Size(Math.Min(1248,display.Bounds.Width),Math.Min(715,display.Bounds.Height)));
                     using var frame=new Bitmap(region.Width,region.Height,System.Drawing.Imaging.PixelFormat.Format32bppRgb);
-                    for(int i=0;i<100;i++)RecordingScreenCapture.CopyFrame(frame,region);
-                    Console.WriteLine("PASS: 100 native capture frames on "+display.DeviceName+" "+region);
+                    using var cursor=new RecordingScreenCapture.CursorOverlay();
+                    for(int i=0;i<100;i++)RecordingScreenCapture.CopyFrame(frame,region,i%2==0?cursor:null);
+                    Console.WriteLine("PASS: 100 native capture frames, alternating cursor on/off, on "+display.DeviceName+" "+region);
                 }
             }
             if(args.Contains("--recorderstop"))
             {
                 foreach(bool audio in new[]{false,true})
                 {
-                    var recorder=new RegionRecorder(new Rectangle(0,0,320,240),false);
+                    var recorder=new RegionRecorder(new Rectangle(0,0,320,240),false,fps);
                     try
                     {
                         recorder.Ready.WaitAsync(TimeSpan.FromSeconds(10)).GetAwaiter().GetResult();

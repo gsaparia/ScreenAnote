@@ -46,3 +46,37 @@ optional 100-frame-per-monitor Windows capture check.
 Restore V6 ScrollingCapture.cs, Capture.cs and DoCapture directly from the original
 V6 ZIP. The engine itself was already unchanged; remove the added browser-window
 selection wrapper. Both scrolling menu options now use the exact V6 scroll path.
+
+## Continuous fragmented MP4 recording (7.0.7)
+
+Select Media Foundation's fragmented MP4 container explicitly while retaining
+H.264/AAC encoding and the existing background recording worker. Completed
+fragments are written during recording without separate chunk files or a joining
+pass on Stop. Add native Windows pre-finalization fragment checks and portable
+MP4 structure tests. Preserve the restored V6 scrolling implementation.
+
+## Recording FPS selector (7.0.8)
+
+Add a 15/24/30/60 FPS dropdown to the recording popup, defaulting to 30. Pass the
+selected value to both capture scheduling and encoder media types, including the
+last-frame duration. Lock selection during startup, recording, and finalization.
+Preserve fragmented MP4 output and restored V6 scrolling sources.
+
+## Microphone gain, meter and system volume (7.0.9)
+
+Add microphone gain (0–400%, default 200%), live post-gain microphone peak meter,
+and independent recorded system volume (0–100%, default 50%). Mic toggle now
+controls voice only. Enable Mic before Start to preview levels without saved
+samples or speaker monitoring. Preview and recording use separate capture owners
+with asynchronous handover/cleanup. Apply a stateful peak limiter to the mixed
+PCM stream before AAC encoding. Preserve FPS default 30, fragmented MP4 output,
+and restored V6 scrolling capture.
+
+## Recording cursor visibility (7.0.10)
+
+Add Show cursor, enabled by default and adjustable during recording. Composite
+the current visible native cursor onto the capture bitmap before resize/encoding,
+respecting its hotspot and virtual-desktop coordinates. Cache only the current
+cursor shape; dispose owned copies and temporary icon bitmaps safely. Cursor
+lookup failures skip the overlay without aborting screen capture. Preserve audio
+controls, FPS, fragmented MP4 and restored V6 scrolling code.

@@ -1,3 +1,79 @@
+## Recording cursor update (7.0.10)
+
+- Application and Windows smoke-test sources compile successfully; Windows x64
+  executable rebuilt. Portable suite passes, including cursor-hotspot geometry
+  on left/upper monitors and partial region-edge placement.
+- Native overlay uses GetCursorInfo, CopyIcon/GetIconInfo and DrawIconEx on the
+  existing screen-compatible DC. Copied cursor handles and GetIconInfo bitmaps
+  are released; OS-owned cursor handles are never destroyed.
+- Cursor position/visibility is refreshed per frame; current shape is cached.
+  Overlay occurs before screen resize. No cursor processing is deferred to Stop.
+- ScrollingCapture.cs, Capture.cs, MainForm.cs, AudioMix.cs, WaveMicrophone.cs,
+  Mp4Writer.cs and VideoFrames.cs match 7.0.9 byte for byte.
+- Native Windows rendering, actual UI layout/DPI, animated/custom cursor behavior,
+  and performance remain unverified. Visual Studio/MSBuild was not run here.
+
+On Windows: dotnet run --project WindowsTests/WindowsSmoke.csproj -- --captureframes
+now alternates cursor inclusion across 100 frames on every monitor. Also record
+mouse movement, arrow/text/hand cursor changes, region edges, secondary monitors,
+and a scaled recording. Toggle Show cursor during recording, verify playback,
+and repeat Start/Stop with audio to check resource cleanup and responsiveness.
+
+## Recording audio controls (7.0.9)
+
+- Application and Windows smoke-test sources compile successfully with .NET 8
+  C# compiler and Windows reference assemblies. Included Windows executable rebuilt.
+- Portable suite passes, including independent source gain/mute, signed PCM peak
+  measurement, limiter ceiling/polarity, and recovery after loud audio. Existing
+  audio lifecycle, synchronization arithmetic, and MP4 inspection tests pass.
+- Preview measures capture peaks without queuing sample audio. Meter polling does
+  not consume the recorder's PCM queue. Mic gain/system volume are per-session
+  properties and can change without reinitializing active devices unless muted.
+- Limiter operates per PCM block with immediate peak reduction and smooth release;
+  no additional end-of-recording processing or file assembly was introduced.
+- ScrollingCapture.cs, Capture.cs, MainForm.cs, VideoFrames.cs and Mp4Writer.cs
+  remain byte-for-byte identical to 7.0.8.
+- Native Windows audio, UI layout/DPI, and actual long-recording Stop timing
+  remain unverified in this Linux environment. Visual Studio/MSBuild was not run.
+
+Windows checks: turn Mic on before Start; speak and adjust gain; test preview
+mute/re-enable and start handover. Record voice with system volume 0%, system
+sound with Mic off, both together, and both muted. Change each gain during
+recording and pause, verify playback volume/synchronization, then Stop and Start
+again. Check device/permission errors, closing during preview, and long recording
+Stop responsiveness. Test a loud input; the limiter cannot repair device clipping.
+
+## Recording FPS update (7.0.8)
+
+- Application and Windows smoke-test sources compile; Windows executable rebuilt.
+- Portable suite passes. FPS now flows from the popup into recording scheduling,
+  the final-frame duration, and H.264/NV12 media-type frame rates.
+- Native Windows execution and UI layout remain unverified in this environment.
+  Check dropdown default 30, each option, locking during recording/pause/Stop,
+  playback duration, and audio synchronization on Windows.
+- Native smoke tests accept --fps=15, --fps=24, --fps=30, or --fps=60; e.g.
+  dotnet run --project WindowsTests/WindowsSmoke.csproj -- --fragmented --fps=30
+- Restored scrolling sources remain identical to the previous package.
+
+## Continuous fragmented MP4 update (7.0.7)
+
+- Explicit MF_TRANSCODE_CONTAINERTYPE / MFTranscodeContainerType_FMPEG4
+  selection requests fragmented MP4 from the existing sink writer.
+- Application, Windows smoke tests, and portable test suite compile successfully
+  with the .NET 8 C# compiler and Windows reference assemblies. The included
+  Windows x64 executable was regenerated from the updated assembly.
+- Portable tests pass, including committed-fragment inspection, truncated tails,
+  regular-MP4 rejection, audio timing/mixing, and shutdown lifecycle tests.
+- ScrollingCapture.cs, Capture.cs, and MainForm.cs are byte-for-byte identical to
+  the previous package containing restored V6 scrolling.
+- Visual Studio/MSBuild and native Windows recording cannot run in this Linux
+  environment. Native fragment production, playback compatibility, and actual
+  long-recording Stop latency remain unverified.
+- On Windows run: dotnet run --project WindowsTests/WindowsSmoke.csproj -- --fragmented
+  This requires multiple complete moof/mdat fragments before Stop and logs
+  finalization time. Then exercise long recordings with audio, pause/resume,
+  repeated Start/Stop, and secondary-monitor regions using the application.
+
 ## V6 scrolling workflow restoration (7.0.6)
 
 - ScrollingCapture.cs and Capture.cs match the original V6 ZIP byte for byte.

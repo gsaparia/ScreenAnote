@@ -10,15 +10,18 @@ internal sealed class WaveMicrophone:IDisposable
     private readonly Task worker;
     private readonly Func<bool> paused;
     private volatile bool enabled;
+    private readonly bool queueAudio;
+    private float peak;
     private string? error;
     private int generation,stopWaited,disposed;
     public bool Enabled{get=>enabled;set{enabled=value;Discard();}}
-    public void Discard(){Interlocked.Increment(ref generation);queue.Clear();}
+    public void Discard(){Interlocked.Increment(ref generation);queue.Clear();Interlocked.Exchange(ref peak,0);}
+    public float TakePeak()=>Interlocked.Exchange(ref peak,0);
     public string? TakeError()=>Interlocked.Exchange(ref error,null);
     public byte[] Read(int samples)=>Enabled&&!paused()?queue.Read(samples):new byte[samples*2];
-    public WaveMicrophone(bool enabled,Func<bool> paused)
+    public WaveMicrophone(bool enabled,Func<bool> paused,bool queueAudio=true)
     {
-        this.enabled=enabled;this.paused=paused;
+        this.enabled=enabled;this.paused=paused;this.queueAudio=queueAudio;
         worker=Task.Factory.StartNew(Run,CancellationToken.None,TaskCreationOptions.LongRunning,TaskScheduler.Default);
     }
     private void Run()
@@ -30,7 +33,16 @@ internal sealed class WaveMicrophone:IDisposable
             {
                 int current=Volatile.Read(ref generation);if(current!=observed){device?.Dispose();device=null;queue.Clear();observed=current;}
                 if(!enabled||paused()){device?.Dispose();device=null;queue.Clear();stop.Token.WaitHandle.WaitOne(10);continue;}
-                try{device??=new Device();foreach(var block in device.Drain())if(enabled&&!paused()&&current==Volatile.Read(ref generation))queue.Add(block);}
+                try
+                {
+                    device??=new Device();
+                    foreach(var block in device.Drain())if(enabled&&!paused()&&current==Volatile.Read(ref generation))
+                    {
+                        float value=AudioMix.Peak(block),old;
+                        do{old=Volatile.Read(ref peak);if(value<=old)break;}while(Interlocked.CompareExchange(ref peak,value,old)!=old);
+                        if(queueAudio)queue.Add(block);
+                    }
+                }
                 catch(Exception ex){enabled=false;queue.Clear();error="Microphone unavailable: "+ex.Message;device?.Dispose();device=null;}
                 stop.Token.WaitHandle.WaitOne(10);
             }

@@ -14,6 +14,64 @@ Local annotation and screen capture; URL browsing makes ordinary web requests.
 The included application was compiled successfully, but has not been launched on
 Windows in the delivery environment.
 
+## Cursor recording (7.0.10)
+
+**Show cursor** in the recording popup is checked by default. Toggle it before
+or during recording. The native cursor position, visibility and shape are read
+while capturing; its hotspot is aligned to the selected region, including monitors
+with negative coordinates. It is clipped at region edges and resized with the
+screen image before encoding. A hidden Windows cursor remains hidden.
+
+Cursor pixels are encoded during recording; Stop/Save requires no additional
+cursor processing. The current shape is cached and native copies are released at
+recording shutdown. Actual performance remains to be measured on Windows.
+
+## Audio controls (7.0.9)
+
+- **Mic gain:** 0–400%, default 200%. 100% preserves input amplitude; 0% mutes
+  voice. Gain also raises microphone noise. Mic starts off.
+- **Mic level:** green/yellow/red peak meter with dBFS readout after mic gain,
+  before the mix limiter. Click **Mic on** before Start for a live level preview;
+  preview is not saved and does not play through speakers. Start hands capture
+  over to the recorder; preview returns after Stop if Mic remains on.
+- **System audio:** independent 0–100% recorded volume, default 50%. 0% mutes
+  recorded system sound. Mic off affects voice only. This does not alter Windows
+  playback volume. To record silently, leave Mic off and set System audio to 0%.
+- Adjust both sliders during recording or pause. They lock while Stop finishes.
+- **Limiter:** always active after mixing. Reduces peaks to 95% of full scale
+  with immediate attack and a smooth release. It cannot repair audio already
+  distorted by the microphone/device or eliminate background noise.
+
+## Recording FPS (7.0.8)
+
+The recording popup provides 15, 24, 30, and 60 FPS; the default is 30.
+Select FPS before Start. The selection controls the capture interval and MP4
+encoder frame rate, and remains locked until Stop has finished. Actual frame
+throughput depends on the selected region and computer performance.
+
+## Continuous fragmented MP4 recording (7.0.7)
+
+Recording now explicitly uses Windows Media Foundation's fragmented MP4 container
+with the existing H.264 video and AAC audio encoders. Completed fragments are
+written into one MP4 during recording; Stop finalizes the remaining fragment.
+There is no separate chunk assembly or full-video re-encoding step. Recording
+and finalization continue on the existing background worker.
+
+The restored V6 scrolling capture code is preserved. This change targets MP4
+finalization; it does not guarantee an instant Stop if capture, audio shutdown,
+or the encoder stalls. Long-recording Stop timing must be measured on Windows.
+
+Run the Windows verification from the source folder:
+
+```bat
+dotnet run --project WindowsTests/WindowsSmoke.csproj -- --fragmented
+```
+
+This writes 30 seconds of synthetic video/audio, requires multiple complete
+fragments on disk before finalization, and reports finalization time. Also test
+an actual long recording with microphone/system audio, pause/resume, and playback
+of the saved MP4 in your preferred player.
+
 ## Build from source
 
 1. Install the **.NET 8 SDK** on Windows (https://dotnet.microsoft.com/download/dotnet/8.0).
@@ -97,8 +155,9 @@ cleanup finishes, rather than being freed underneath a driver.
   undo and redo. The chosen appearance becomes the default for new text.
 - The bottom toolbar displays icons only. Tooltips and accessible names identify
   each tool; keyboard focus indicators remain available.
-- **Mic on** records both the default microphone and speaker/system audio from the
-  default Windows playback endpoint. **Mic off** silences both sources in the MP4.
+- **Mic on** records the default microphone. The independent **System audio**
+  slider controls sound from the default Windows playback endpoint. **Mic off**
+  mutes voice only; set System audio to 0% to mute playback audio.
   Pause discards queued audio; resume continues on the active recording timeline.
   Device errors are reported while video and the remaining audio source continue.
   If changing playback devices during recording, restart the recording.
@@ -123,13 +182,12 @@ cleanup finishes, rather than being freed underneath a driver.
 - **Mic toggle:** the recording controller has a microphone icon with **Mic off /
   Mic on**. It starts off; click to enable voice before or during recording. Click
   again to mute while continuing video. It records the default Windows input
-  device, in mono 44.1 kHz, encoded as AAC inside the MP4. Muted intervals are
-  silent. Pause stops microphone capture and removes paused time from both tracks.
+  device, in mono 44.1 kHz, encoded as AAC inside the MP4. Mic-muted intervals contain no voice; system audio is independent. Pause stops microphone capture and removes paused time from both tracks.
   Stop closes the device before MP4 finalization. All processing remains local.
   If the microphone is unavailable or permission is denied, a message explains
   the problem and video continues with the mic off. Check Windows Settings →
-  Microphone access and your default input device. System/speaker audio is not
-  recorded. Recordings contain an audio track even when the mic stays off.
+  Microphone access and your default input device. System/speaker audio is
+  controlled independently by its volume slider. Recordings contain an audio track even when the mic stays off.
 - **365 illustrated stickers / 18 categories:** smileys, icons, objects, animals,
   food, nature, weather, transport, travel, technology, work, sports, celebrations,
   health, arrows, callouts, shapes and symbols. Open Stickers → **Browse**, choose
@@ -184,11 +242,11 @@ cleanup finishes, rather than being freed underneath a driver.
    recording asks before discarding it.
 4. Close the controller to return to your screenshot editor.
 
-The recorder produces H.264 MP4 with optional microphone voice at a target 15 fps, scaled to fit within
+The recorder produces H.264 MP4 with optional microphone voice at the selected FPS (30 by default), scaled to fit within
 1920 × 1080 without upscaling. Dimensions are rounded down to even pixel counts
 for H.264; odd-sized selections can have a tiny aspect difference. Very slow
 capture/encoding can reduce frame rate; sample timestamps preserve elapsed time.
-System audio and cursor overlays are not recorded. Microphone voice is optional. Keep the recorded content unobstructed.
+System audio is controlled independently by its volume slider. Cursor visibility is controlled by **Show cursor**. Microphone voice is optional. Keep the recorded content unobstructed.
 Protected content may appear blank.
 
 Windows Media Foundation supplies the encoder; no FFmpeg, codec download or

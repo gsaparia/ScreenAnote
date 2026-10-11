@@ -2,8 +2,13 @@ using System.Drawing;
 namespace ScreenAnote;
 internal static class VideoFrames
 {
-    public const int Fps=15;
+    public const int Fps=30;
     public const long FrameTicks=10_000_000/Fps;
+    public static long FrameDuration(int fps)
+    {
+        if(fps<1||fps>60)throw new ArgumentOutOfRangeException(nameof(fps),"Frame rate must be between 1 and 60 FPS.");
+        return 10_000_000L/fps;
+    }
     public static Size OutputSize(Size region)
     {
         if(region.Width<2||region.Height<2)throw new ArgumentException("Select a region at least 2 × 2 pixels.");
